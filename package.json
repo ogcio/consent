@@ -1,0 +1,89 @@
+{
+  "name": "@ogcio/consent",
+  "version": "0.1.0",
+  "description": "A reusable consent management package for Next.js applications",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.mjs",
+      "require": "./dist/server/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "lint": "biome check",
+    "format": "biome check --write",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "consent",
+    "gdpr",
+    "privacy",
+    "nextjs",
+    "react",
+    "typescript",
+    "modal",
+    "compliance"
+  ],
+  "author": "OGCIO",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ogcio/consent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ogcio/consent/issues"
+  },
+  "homepage": "https://github.com/ogcio/consent#readme",
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "next": "14.2.30"
+  },
+  "dependencies": {
+    "@govie-ds/react": "^1.9.0",
+    "@govie-ds/theme-govie": "^1.4.1"
+  },
+  "devDependencies": {
+    "@ogcio/nextjs-analytics": "^1.0.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "tsup": "^8.5.0",
+    "@biomejs/biome": "^2.1.2",
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@types/node": "^24.0.15",
+    "@vitest/coverage-v8": "^3.2.4",
+    "concurrently": "^9.2.0",
+    "husky": "^9.1.7",
+    "nodemon": "^3.1.10",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
