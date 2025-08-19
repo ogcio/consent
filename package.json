@@ -27,12 +27,16 @@
     "dev": "tsup --watch",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit",
-    "lint": "biome check",
-    "format": "biome check --write",
+    "fix:linting": "biome lint --write",
+    "check:formatting": "biome format",
+    "check:linting": "biome lint",
+    "fix:formatting": "biome format --write",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "pnpm run clean && pnpm run build",
+    "preinstall": "npx only-allow pnpm",
+    "prepare": "husky || true"
   },
   "keywords": [
     "consent",
