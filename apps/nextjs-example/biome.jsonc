@@ -1,0 +1,15 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
+  "extends": ["../../biome.jsonc"],
+  "files": {
+    "includes": [
+      "src/**/*",
+      "!**/.next/**/*",
+      "!**/public/**/*",
+      "!**/node_modules/**/*",
+      "!**/dist/**/*",
+      "!**/coverage/**/*",
+      "!**/*.css"
+    ]
+  }
+}
