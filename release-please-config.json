@@ -15,12 +15,12 @@
   ],
   "packages": {
     "packages/consent": {
-      "tag-separator": "@",
       "component": "@ogcio/consent",
       "release-type": "node",
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
-      "package-name": "@ogcio/consent"
+      "package-name": "@ogcio/consent",
+      "include-v-in-tag": true
     }
   }
 }
