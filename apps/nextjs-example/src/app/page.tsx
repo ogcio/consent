@@ -19,7 +19,7 @@ declare global {
 }
 
 export default function HomePage() {
-  const { isOptedOut } = useConsent()
+  const { isOptedOut, setIsConsentModalOpen } = useConsent()
   const [consentInfo, setConsentInfo] = useState<{
     status: string
     version?: string
@@ -188,12 +188,13 @@ export default function HomePage() {
               The consent modal appears automatically based on user status,
               consent version, and custom rules.
             </p>
-            <Link
-              href='/?force-consent=1'
+            <button
+              type='button'
+              onClick={() => setIsConsentModalOpen(true)}
               className='demo-button demo-button-primary text-center'
             >
               Force Show Modal
-            </Link>
+            </button>
           </div>
 
           <div className='demo-card flex flex-col gap-2 justify-between'>
