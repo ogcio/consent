@@ -3,6 +3,7 @@
 // TODO: import the toast provider conditionally only if the consumers requires toasts
 import { ToastProvider } from "@govie-ds/react"
 import { createContext, useContext, useEffect, useState } from "react"
+import { ConsentStatuses } from "@/constants"
 import { ConsentModal } from "./ConsentModal"
 import type { ConsentContextValue, ConsentProviderProps } from "./types"
 
@@ -19,7 +20,7 @@ export const ConsentProvider: React.FC<ConsentProviderProps> = ({
   const [isConsentModalOpen, setIsConsentModalOpen] = useState(false)
 
   // Check if user has opted out
-  const isOptedOut = consentStatus === "opted-out"
+  const isOptedOut = consentStatus === ConsentStatuses.OptedOut
 
   // Determine if modal should be shown
   useEffect(() => {

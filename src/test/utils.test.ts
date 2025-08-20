@@ -23,10 +23,7 @@ import {
   createConsentAnalyticsEvent,
   createNoOpAnalyticsTracker,
 } from "@/utils/analytics"
-import {
-  createDefaultConsentConfig,
-  createMessagingConsentConfig,
-} from "@/utils/config"
+import { createDefaultConsentConfig } from "@/utils/config"
 import {
   createFallbackContent,
   transformBackendResponse,
@@ -92,19 +89,6 @@ describe("Config Utils", () => {
       })
 
       expect(result).toBe(true)
-    })
-  })
-
-  describe("createMessagingConsentConfig", () => {
-    it("creates a messaging-specific config", () => {
-      const config = createMessagingConsentConfig({
-        subject: "messaging",
-        content: DEFAULT_CONSENT_CONTENT,
-      })
-
-      expect(config.subject).toBe("messaging")
-      expect(config.forceModalParam).toBe("force-consent")
-      expect(config.onConsentSuccess?.showToast).toBe(true)
     })
   })
 })

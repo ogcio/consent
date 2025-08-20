@@ -250,18 +250,6 @@ const config = createDefaultConsentConfig({
 })
 ```
 
-#### `createMessagingConsentConfig()`
-
-Creates a messaging-specific consent configuration.
-
-```tsx
-const config = createMessagingConsentConfig({
-  subject: 'messaging',
-  content: consentContent,
-  isConsentEnabled?: boolean,
-})
-```
-
 #### `transformBackendResponse()`
 
 Transforms backend API response to frontend content format.

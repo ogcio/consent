@@ -9,7 +9,4 @@ export {
   createNoOpAnalyticsTracker,
 } from "./utils/analytics"
 export type { ConsentConfigBuilder } from "./utils/config"
-export {
-  createDefaultConsentConfig,
-  createMessagingConsentConfig,
-} from "./utils/config"
+export { createDefaultConsentConfig } from "./utils/config"

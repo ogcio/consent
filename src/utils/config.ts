@@ -83,24 +83,3 @@ export const createDefaultConsentConfig = ({
     forceModalParam,
   }
 }
-
-/**
- * Creates a messaging-specific consent configuration
- */
-export const createMessagingConsentConfig = ({
-  subject,
-  content,
-  isConsentEnabled = true,
-}: {
-  subject: string
-  content: ConsentStatementContent
-  isConsentEnabled?: boolean
-}): ConsentConfig => {
-  return createDefaultConsentConfig({
-    subject,
-    content,
-    isConsentEnabled,
-    forceModalParam: "force-consent",
-    showToastOnSuccess: true,
-  })
-}

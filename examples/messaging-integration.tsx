@@ -5,8 +5,8 @@ import {
   type ConsentStatementContent,
   type ConsentStatus,
   createAnalyticsTracker,
-  createMessagingConsentConfig,
-} from "@ogcio/consent"
+  createDefaultConsentConfig,
+} from "../src"
 import { useAnalytics } from "@ogcio/nextjs-analytics"
 import type { ReactNode } from "react"
 // biome-ignore lint/correctness/noUnusedImports: Expected as this file is an example
@@ -33,10 +33,12 @@ export function MessagingConsentIntegration({
   const analytics = useAnalytics()
 
   // Create messaging-specific consent configuration
-  const consentConfig = createMessagingConsentConfig({
+  const consentConfig = createDefaultConsentConfig({
     subject: "messaging",
     content: consentContent,
     isConsentEnabled,
+    forceModalParam: "force-consent",
+    showToastOnSuccess: true,
   })
 
   // Override API implementation with messaging-specific logic
