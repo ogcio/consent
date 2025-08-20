@@ -8,6 +8,19 @@ import {
   mockUser,
 } from "@/lib/consent"
 
+interface MockUser {
+  id: string
+  isPublicServant: boolean
+  preferredLanguage: string
+  isAuthenticated: boolean
+}
+
+declare global {
+  interface Window {
+    __mockUser?: MockUser
+  }
+}
+
 interface ConsentWrapperProps {
   children: React.ReactNode
   isConsentEnabled?: boolean
@@ -24,6 +37,7 @@ export function ConsentWrapper({
     string | undefined
   >()
   const [isLoading, setIsLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState(mockUser)
 
   // Fetch initial consent status
   useEffect(() => {
@@ -43,6 +57,46 @@ export function ConsentWrapper({
 
     loadConsentStatus()
   }, [])
+
+  // Listen for user context changes
+  useEffect(() => {
+    const handleUserContextChange = (event: CustomEvent) => {
+      const { isPublicServant } = event.detail || {}
+      if (typeof isPublicServant === "boolean") {
+        setCurrentUser((prev) => ({ ...prev, isPublicServant }))
+        console.log(
+          `🔄 User context updated: ${isPublicServant ? "Public Servant" : "Regular User"}`,
+        )
+      }
+    }
+
+    // Also sync with global window state
+    const syncUserContext = () => {
+      const globalUser = window.__mockUser
+      if (globalUser) {
+        setCurrentUser((prev) => ({ ...prev, ...globalUser }))
+      }
+    }
+
+    window.addEventListener(
+      "userContextChanged",
+      handleUserContextChange as EventListener,
+    )
+    window.addEventListener("consentChanged", syncUserContext)
+
+    // Initialize global user state
+    if (typeof window !== "undefined") {
+      window.__mockUser = currentUser
+    }
+
+    return () => {
+      window.removeEventListener(
+        "userContextChanged",
+        handleUserContextChange as EventListener,
+      )
+      window.removeEventListener("consentChanged", syncUserContext)
+    }
+  }, [currentUser])
 
   // Create consent configuration
   const consentConfig = createDemoConsentConfig(isConsentEnabled)
@@ -100,8 +154,8 @@ export function ConsentWrapper({
     <ConsentProvider
       config={consentConfig}
       userContext={{
-        isPublicServant: mockUser.isPublicServant,
-        preferredLanguage: mockUser.preferredLanguage,
+        isPublicServant: currentUser.isPublicServant,
+        preferredLanguage: currentUser.preferredLanguage,
       }}
       consentStatus={consentStatus}
       userConsentVersion={userConsentVersion}

@@ -31,6 +31,19 @@ interface ApiCall {
   duration: number
 }
 
+interface MockUser {
+  id: string
+  isPublicServant: boolean
+  preferredLanguage: string
+  isAuthenticated: boolean
+}
+
+declare global {
+  interface Window {
+    __mockUser?: MockUser
+  }
+}
+
 export default function ScenariosPage() {
   const { setIsConsentModalOpen, config } = useConsent()
   const [activeScenario, setActiveScenario] = useState<string | null>(null)
@@ -176,12 +189,88 @@ export default function ScenariosPage() {
     }
   }
 
+  // Simulate public servant mode toggle
+  const simulatePublicServant = async () => {
+    try {
+      addConsoleLog("👨‍💼 Starting public servant mode simulation...")
+
+      // Get current public servant status from mockUser
+      const currentStatus = window.__mockUser?.isPublicServant || false
+      const newStatus = !currentStatus
+
+      addConsoleLog(
+        `🔄 Switching from ${currentStatus ? "Public Servant" : "Regular User"} to ${newStatus ? "Public Servant" : "Regular User"}`,
+      )
+
+      // Update global mock user state
+      if (typeof window !== "undefined") {
+        window.__mockUser = {
+          ...(window.__mockUser || {
+            id: "user-123",
+            preferredLanguage: "en",
+            isAuthenticated: true,
+          }),
+          isPublicServant: newStatus,
+        }
+      }
+
+      addConsoleLog("✅ User context updated successfully")
+      addConsoleLog("🔄 Triggering consent provider refresh...")
+
+      // Dispatch custom event to trigger consent context refresh
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("consentChanged"))
+        window.dispatchEvent(
+          new CustomEvent("userContextChanged", {
+            detail: { isPublicServant: newStatus },
+          }),
+        )
+      }
+
+      setTimeout(() => {
+        if (newStatus) {
+          addConsoleLog("🏛️ Public servant mode activated")
+          addConsoleLog("⚖️ Different consent rules may now apply")
+          addConsoleLog("🎯 Enhanced privacy protections enabled")
+        } else {
+          addConsoleLog("👤 Regular user mode activated")
+          addConsoleLog("📋 Standard consent rules now apply")
+        }
+        addConsoleLog("🎉 Public servant simulation complete!")
+        alert(
+          `Successfully switched to ${newStatus ? "Public Servant" : "Regular User"} mode! ${newStatus ? "Enhanced privacy protections are now active for government employees." : "Standard consent rules now apply."} Check the console logs and home page to see the changes.`,
+        )
+      }, 1000)
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error"
+      addConsoleLog(
+        `🚨 Error during public servant simulation: ${errorMessage}`,
+        "error",
+      )
+      alert(
+        "Error during public servant simulation. Check the console for details.",
+      )
+    }
+  }
+
   // Simulate opted-out user experience
   const simulateOptedOutUser = async () => {
     try {
       addConsoleLog("🚫 Starting opted-out user simulation...")
 
-      // Step 1: Submit a declined consent decision
+      // Step 1: Reset user context to regular user (for clean opt-out simulation)
+      addConsoleLog("👤 Resetting user context to regular user...")
+      if (typeof window !== "undefined") {
+        window.__mockUser = {
+          id: "user-123",
+          preferredLanguage: "en",
+          isAuthenticated: true,
+          isPublicServant: false, // Opted-out simulation uses regular user
+        }
+      }
+
+      // Step 2: Submit a declined consent decision
       addConsoleLog("❌ Submitting declined consent decision...")
       const declineResponse = await makeApiCall("POST", "/api/consent/submit", {
         accept: false,
@@ -198,20 +287,25 @@ export default function ScenariosPage() {
 
       addConsoleLog("✅ Declined consent decision recorded successfully")
 
-      // Step 2: Trigger consent status reload in other components
+      // Step 3: Trigger consent status reload and user context update
       addConsoleLog("🔄 Updating application state for opted-out user...")
 
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("consentChanged"))
+        window.dispatchEvent(
+          new CustomEvent("userContextChanged", {
+            detail: { isPublicServant: false },
+          }),
+        )
       }
 
-      // Step 3: Show the opted-out experience
+      // Step 4: Show the opted-out experience
       setTimeout(() => {
         addConsoleLog("⚠️ User is now opted-out - limited functionality active")
         addConsoleLog("🛡️ Privacy-respecting mode enabled")
         addConsoleLog("🎉 Opted-out user simulation complete!")
         alert(
-          "Opted-out simulation complete! You are now experiencing the application as a user who declined consent. Check the home page to see the limited functionality warning and how the app respects your privacy choice.",
+          "Opted-out simulation complete! You are now experiencing the application as a regular user who declined consent. Check the home page to see the limited functionality warning and how the app respects your privacy choice.",
         )
       }, 1000)
     } catch (error) {
@@ -247,21 +341,37 @@ export default function ScenariosPage() {
 
       addConsoleLog("✅ Consent data cleared successfully")
 
-      // Step 2: Simulate page refresh by triggering consent status reload
-      addConsoleLog("🔄 Simulating page refresh and consent status check...")
-
-      // Dispatch a custom event to trigger consent status reload in other components
+      // Step 2: Reset user context to regular user (new users aren't public servants)
+      addConsoleLog("👤 Resetting user context to regular user...")
       if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("consentChanged"))
+        window.__mockUser = {
+          id: "user-123",
+          preferredLanguage: "en",
+          isAuthenticated: true,
+          isPublicServant: false, // New users start as regular users
+        }
       }
 
-      // Step 3: Wait a moment then trigger the consent modal
+      // Step 3: Simulate page refresh by triggering consent status reload
+      addConsoleLog("🔄 Simulating page refresh and consent status check...")
+
+      // Dispatch custom events to trigger reloads in other components
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("consentChanged"))
+        window.dispatchEvent(
+          new CustomEvent("userContextChanged", {
+            detail: { isPublicServant: false },
+          }),
+        )
+      }
+
+      // Step 4: Wait a moment then trigger the consent modal
       setTimeout(() => {
         addConsoleLog("📋 New user detected - showing consent modal...")
         setIsConsentModalOpen(true)
         addConsoleLog("🎉 New user experience simulation complete!")
         alert(
-          "New user simulation complete! The consent modal should now appear as if you're a first-time visitor. Your previous consent decisions have been cleared.",
+          "New user simulation complete! The consent modal should now appear as if you're a first-time visitor. Your previous consent decisions have been cleared and you're now a regular user.",
         )
       }, 1000)
     } catch (error) {
@@ -324,15 +434,6 @@ export default function ScenariosPage() {
       buttonText: "Switch to Public Servant",
       buttonClass: "demo-button-secondary",
     },
-    {
-      id: "mobile-view",
-      title: "Mobile Experience",
-      description:
-        "See how the consent modal appears and functions on mobile devices.",
-      action: "mobile",
-      buttonText: "Mobile Demo",
-      buttonClass: "demo-button-primary",
-    },
   ]
 
   const handleScenarioAction = async (scenario: Scenario) => {
@@ -365,10 +466,7 @@ export default function ScenariosPage() {
         break
 
       case "public-servant":
-        addConsoleLog("👨‍💼 Simulating public servant mode switch")
-        alert(
-          "In a real app, this would switch the user context to public servant mode.",
-        )
+        await simulatePublicServant()
         break
 
       case "mobile":

@@ -129,36 +129,38 @@ function AnalyticsContent({
           {/* Analytics Status Panel */}
           <div className='lg:col-span-1'>
             <div className='demo-card'>
-              <h3 className='text-lg! font-semibold! mb-4'>Analytics Status</h3>
+              <h3 className='text-lg! font-semibold! mb-4!'>
+                Analytics Status
+              </h3>
 
-              <div className='space-y-4'>
-                <div>
+              <div className='space-y-2'>
+                <div className='flex items-center justify-between gap-2'>
                   <div className='block text-sm font-medium text-gray-700 mb-1'>
                     Consent Status
                   </div>
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(consentStatus)}`}
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${getStatusColor(consentStatus)}`}
                   >
                     {consentStatus}
                   </span>
                 </div>
 
-                <div>
+                <div className='flex items-center justify-between gap-2'>
                   <div className='block text-sm font-medium text-gray-700 mb-1'>
                     Analytics Enabled
                   </div>
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isAnalyticsEnabled ? "text-green-600 bg-green-100" : "text-red-600 bg-red-100"}`}
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${isAnalyticsEnabled ? "text-green-600 bg-green-100" : "text-red-600 bg-red-100"}`}
                   >
                     {isAnalyticsEnabled ? "Yes" : "No"}
                   </span>
                 </div>
 
-                <div>
+                <div className='flex items-center justify-between gap-2'>
                   <div className='block text-sm font-medium text-gray-700 mb-1'>
                     Events Tracked
                   </div>
-                  <span className='text-2xl font-bold text-blue-600'>
+                  <span className='text-sm font-bold text-blue-600'>
                     {analyticsEvents.length}
                   </span>
                 </div>
@@ -239,7 +241,7 @@ function AnalyticsContent({
                       className='border border-gray-200 rounded-lg p-3 bg-white'
                     >
                       <div className='flex items-center justify-between mb-2'>
-                        <h4 className='font-medium text-gray-900'>
+                        <h4 className='font-medium! text-gray-900'>
                           {event.event}
                         </h4>
                         <span className='text-xs text-gray-500'>
