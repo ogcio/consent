@@ -78,6 +78,12 @@ vi.mock("@govie-ds/react", () => ({
     React.createElement("div", { "data-testid": "spinner", ...props }),
   Stack: ({ children, ...props }: MockComponentProps) =>
     React.createElement("div", { "data-testid": "stack", ...props }, children),
+  ToastProvider: ({ children, ...props }: MockComponentProps) =>
+    React.createElement(
+      "div",
+      { "data-testid": "toast-provider", ...props },
+      children,
+    ),
   toaster: {
     create: vi.fn(),
   },

@@ -12,7 +12,9 @@
       "!**/.*/**/*",
       "!**/node_modules/**/*",
       "!**/dist/**/*",
-      "!**/examples/**/*"
+      "!**/examples/**/*",
+      "!**/coverage/**/*",
+      "!**/.husky/**/*"
     ]
   },
   "linter": {

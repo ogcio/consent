@@ -8,7 +8,7 @@ export default defineConfig({
     globals: true,
     coverage: {
       provider: "v8",
-      reporter: ["text", "json", "html"],
+      reporter: ["text", "json", "html", "cobertura"],
       exclude: [
         "node_modules/",
         "dist/",
@@ -16,6 +16,10 @@ export default defineConfig({
         "**/*.d.ts",
         "**/*.config.*",
       ],
+    },
+    reporters: ["default", "junit"],
+    outputFile: {
+      junit: "./results.xml",
     },
   },
   resolve: {
