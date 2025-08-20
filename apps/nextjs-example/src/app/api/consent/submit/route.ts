@@ -7,6 +7,23 @@ interface ConsentSubmitRequest {
   versionId: string
 }
 
+// Demo storage type for simulating database
+interface DemoConsentRecord {
+  accept: boolean
+  subject: string
+  preferredLanguage: string
+  versionId: string
+  timestamp: string
+}
+
+interface DemoConsentStorage {
+  [userKey: string]: DemoConsentRecord
+}
+
+declare global {
+  var __demo_consent_storage: DemoConsentStorage | undefined
+}
+
 // In a real application, you would:
 // 1. Validate the user's authentication
 // 2. Store the consent decision in your database
@@ -29,7 +46,21 @@ export async function POST(request: NextRequest) {
     // Simulate processing time
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    // Simulate database storage
+    // Simulate database storage - store in global memory for demo
+    const globalConsent = globalThis.__demo_consent_storage || {}
+    const userKey = `${subject}-user-123` // In real app, get from auth
+
+    globalConsent[userKey] = {
+      accept,
+      subject,
+      preferredLanguage,
+      versionId,
+      timestamp: new Date().toISOString(),
+    }
+
+    // Store back to global
+    globalThis.__demo_consent_storage = globalConsent
+
     console.log("Consent decision stored:", {
       accept,
       subject,

@@ -8,7 +8,7 @@ interface ApiResponse {
   method: string
   endpoint: string
   status: number
-  data: any
+  data: unknown
   duration: number
 }
 
@@ -16,7 +16,11 @@ export default function ApiExamplePage() {
   const [apiCalls, setApiCalls] = useState<ApiResponse[]>([])
   const [isLoading, setIsLoading] = useState<string | null>(null)
 
-  const makeApiCall = async (method: string, endpoint: string, body?: any) => {
+  const makeApiCall = async (
+    method: string,
+    endpoint: string,
+    body?: unknown,
+  ) => {
     const callId = `${method}-${endpoint}-${Date.now()}`
     setIsLoading(callId)
 
@@ -85,7 +89,7 @@ export default function ApiExamplePage() {
             <span className='text-gray-700'>API Example</span>
           </nav>
 
-          <h1 className='text-3xl font-bold text-gray-900 mb-4'>
+          <h1 className='text-3xl! font-bold! text-gray-900 mb-4'>
             API Integration Examples
           </h1>
           <p className='text-lg text-gray-600'>
@@ -99,8 +103,10 @@ export default function ApiExamplePage() {
           <div className='space-y-6'>
             {/* Consent Management APIs */}
             <div className='demo-card'>
-              <h3 className='text-lg font-semibold mb-4'>Consent Management</h3>
-              <div className='space-y-3'>
+              <h3 className='text-lg! font-semibold! mb-4'>
+                Consent Management
+              </h3>
+              <div className='space-y-3 flex flex-col gap-2'>
                 <button
                   type='button'
                   onClick={() =>
@@ -156,8 +162,8 @@ export default function ApiExamplePage() {
 
             {/* Status Retrieval APIs */}
             <div className='demo-card'>
-              <h3 className='text-lg font-semibold mb-4'>Status Retrieval</h3>
-              <div className='space-y-3'>
+              <h3 className='text-lg! font-semibold! mb-4'>Status Retrieval</h3>
+              <div className='space-y-3 flex flex-col gap-2'>
                 <button
                   type='button'
                   onClick={() =>
@@ -210,8 +216,8 @@ export default function ApiExamplePage() {
 
             {/* Error Scenarios */}
             <div className='demo-card'>
-              <h3 className='text-lg font-semibold mb-4'>Error Scenarios</h3>
-              <div className='space-y-3'>
+              <h3 className='text-lg! font-semibold! mb-4'>Error Scenarios</h3>
+              <div className='space-y-3 flex flex-col gap-2'>
                 <button
                   type='button'
                   onClick={() =>
@@ -249,7 +255,7 @@ export default function ApiExamplePage() {
           {/* API Call Log */}
           <div className='demo-card'>
             <div className='flex items-center justify-between mb-4'>
-              <h3 className='text-lg font-semibold'>API Call Log</h3>
+              <h3 className='text-lg! font-semibold!'>API Call Log</h3>
               <span className='text-sm text-gray-500'>
                 {apiCalls.length} calls made
               </span>
@@ -311,11 +317,11 @@ export default function ApiExamplePage() {
 
         {/* Integration Documentation */}
         <div className='demo-card mt-8'>
-          <h3 className='text-lg font-semibold mb-4'>
+          <h3 className='text-lg! font-semibold! mb-4'>
             Integration Documentation
           </h3>
 
-          <div className='grid md:grid-cols-2 gap-6'>
+          <div className='grid gap-6'>
             <div>
               <h4 className='font-medium mb-3'>API Configuration</h4>
               <pre className='text-xs bg-gray-800 text-green-400 p-4 rounded overflow-x-auto'>

@@ -139,23 +139,17 @@ export const ConsentModal = () => {
   }
 
   const renderTextWithLinks = (text: string) => {
-    // Replace <tc>Terms and Conditions</tc> and <pp>Privacy Notice</pp> with actual links
+    // Replace <tc>...</tc> and <pp>...</pp> with actual links
     let processedText = text
 
     // Replace link placeholders with actual links
     Object.entries(content.links).forEach(([key, url]) => {
-      const linkText =
-        key === "tc"
-          ? "Terms and Conditions"
-          : key === "pp"
-            ? "Privacy Notice"
-            : key
+      // Use regex to match the tag and extract the actual content between tags
+      const tagRegex = new RegExp(`<${key}>(.*?)</${key}>`, "g")
 
-      // Replace the entire tag including content: <tc>Terms and Conditions</tc>
-      const fullTag = `<${key}>${linkText}</${key}>`
-      const linkTag = `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`
-
-      processedText = processedText.replace(fullTag, linkTag)
+      processedText = processedText.replace(tagRegex, (_match, linkText) => {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`
+      })
     })
 
     // Split by HTML tags and render

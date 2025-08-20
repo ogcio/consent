@@ -1,8 +1,8 @@
 import {
-  createDefaultConsentConfig,
-  createAnalyticsTracker,
   type ConsentStatementContent,
   type ConsentStatus,
+  createAnalyticsTracker,
+  createDefaultConsentConfig,
 } from "@ogcio/consent"
 
 // Sample consent content for the demo application
@@ -98,7 +98,7 @@ export function createDemoConsentConfig(isEnabled: boolean = true) {
     subject: "demo-app",
     content: demoConsentContent,
     isConsentEnabled: isEnabled,
-    forceModalParam: "show-consent",
+    // Use default forceModalParam: "force-consent"
     showToastOnSuccess: true,
   })
 

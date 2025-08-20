@@ -54,10 +54,12 @@ export function ConsentWrapper({
 
       // Update local state
       setConsentStatus(accepted ? "opted-in" : "opted-out")
-      if (accepted) {
-        setUserConsentVersion(consentConfig.content.version.id)
-      } else {
-        setUserConsentVersion(undefined)
+      // Always store the version that was consented to (accept or decline)
+      setUserConsentVersion(consentConfig.content.version.id)
+
+      // Dispatch custom event to notify other components
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("consentChanged"))
       }
 
       // In a real application, you might:

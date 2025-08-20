@@ -137,8 +137,7 @@ config.analyticsTracker = createAnalyticsTracker((event) => {
 ## 🧪 Testing Different Scenarios
 
 ### URL Parameters
-- `/?force-consent=true` - Force show consent modal
-- `/?show-consent=true` - Alternative force parameter
+- `/?force-consent=1` - Force show consent modal
 
 ### API Testing
 Visit `/api-example` to test:

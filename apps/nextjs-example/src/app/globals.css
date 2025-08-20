@@ -1,6 +1,6 @@
+@import "tailwindcss";
 @import "@govie-ds/theme-govie/theme.css";
 @import "@govie-ds/react/styles.css";
-@import "tailwindcss";
 
 /* Custom styles for the demo app */
 .demo-card {
@@ -33,7 +33,7 @@
 
 /* Status indicators */
 .status-badge {
-  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium;
 }
 
 .status-undefined {
