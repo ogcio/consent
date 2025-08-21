@@ -1,0 +1,34 @@
+{
+  "name": "@ogcio/consent-nextjs-example",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "fix:linting": "biome lint --write",
+    "check:formatting": "biome format",
+    "check:linting": "biome lint",
+    "fix:formatting": "biome format --write",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ogcio/consent": "workspace:*",
+    "@govie-ds/react": "^1.9.0",
+    "@govie-ds/theme-govie": "^1.4.1",
+    "@ogcio/nextjs-analytics": "^1.0.0",
+    "next": "14.2.30",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "@tailwindcss/postcss": "^4.1.12",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.12"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

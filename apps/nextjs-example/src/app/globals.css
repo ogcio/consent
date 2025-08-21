@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+.gi-card {
+  @apply rounded-md shadow-md p-4 border border-gray-200;
+}
+
+.gi-card-content {
+  @apply flex flex-col gap-2 justify-between min-h-full;
+}
+
+.gi-card-action {
+  @apply w-full;
+}
+
+.gi-alert-base {
+  @apply min-w-fit rounded-md;
+}
+
+.gi-card-heading {
+  @apply w-full;
+}
+
+.gi-card-horizontal {
+  @apply max-w-full;
+}
+
+/* Custom styles for the demo app */
+.demo-card {
+  @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
+  @apply flex flex-col gap-2 justify-between;
+}

@@ -1,0 +1,55 @@
+{
+  "name": "@ogcio/consent-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Monorepo for OGCIO consent management package and examples",
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r --parallel dev",
+    "clean": "pnpm -r clean",
+    "type-check": "pnpm -r type-check",
+    "fix:linting": "pnpm -r fix:linting",
+    "check:formatting": "pnpm -r check:formatting",
+    "check:linting": "pnpm -r check:linting",
+    "fix:formatting": "pnpm -r fix:formatting",
+    "test": "pnpm -r test",
+    "test:watch": "pnpm -r test:watch",
+    "test:coverage": "pnpm -r test:coverage",
+    "preinstall": "npx only-allow pnpm",
+    "prepare": "husky || true"
+  },
+  "keywords": [
+    "consent",
+    "gdpr",
+    "privacy",
+    "nextjs",
+    "react",
+    "typescript",
+    "monorepo"
+  ],
+  "author": "OGCIO",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ogcio/consent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ogcio/consent/issues"
+  },
+  "homepage": "https://github.com/ogcio/consent#readme",
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.0",
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@types/node": "^24.3.0",
+    "concurrently": "^9.2.0",
+    "husky": "^9.1.7",
+    "nodemon": "^3.1.10",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

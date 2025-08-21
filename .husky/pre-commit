@@ -1,0 +1,6 @@
+pnpm check:formatting
+pnpm check:linting
+
+GITLEAKS_CONTAINER="gitleaks-precommit"
+docker rm -f $GITLEAKS_CONTAINER 2>/dev/null || true
+docker run --name $GITLEAKS_CONTAINER -v $(pwd):/src ghcr.io/gitleaks/gitleaks:v8.19.3 protect --source="/src" --verbose --redact --staged
