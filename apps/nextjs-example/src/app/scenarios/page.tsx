@@ -1,8 +1,25 @@
 "use client"
 
+import {
+  Button,
+  Card,
+  CardAction,
+  CardContainer,
+  CardHeader,
+  CardTitle,
+  Paragraph,
+  Stack,
+} from "@govie-ds/react"
 import { useConsent } from "@ogcio/consent"
-import Link from "next/link"
 import { useState } from "react"
+import { ApiCallsCard } from "@/components/ApiCallsCard"
+import { ConsoleLogsCard } from "@/components/ConsoleLogsCard"
+import type { ApiCall, ConsoleLog } from "@/components/types"
+import {
+  createApiCallTracker,
+  createConsoleLogger,
+  createMakeApiCall,
+} from "@/utils/apiUtils"
 
 interface Scenario {
   id: string
@@ -10,25 +27,7 @@ interface Scenario {
   description: string
   action: string
   buttonText: string
-  buttonClass: string
   status?: string
-}
-
-interface ConsoleLog {
-  id: string
-  message: string
-  type: "info" | "error" | "warning"
-  timestamp: string
-}
-
-interface ApiCall {
-  id: string
-  timestamp: string
-  method: string
-  endpoint: string
-  status: number
-  data: unknown
-  duration: number
 }
 
 interface MockUser {
@@ -50,91 +49,19 @@ export default function ScenariosPage() {
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([])
   const [apiCalls, setApiCalls] = useState<ApiCall[]>([])
 
-  // Add console log
-  const addConsoleLog = (
-    message: string,
-    type: "info" | "error" | "warning" = "info",
-  ) => {
-    const log: ConsoleLog = {
-      id: Date.now().toString(),
-      message,
-      type,
-      timestamp: new Date().toISOString(),
-    }
-    setConsoleLogs((prev) => [log, ...prev.slice(0, 49)]) // Keep last 50 logs
-    console.log(message) // Also log to browser console
-  }
+  // Add console log using utility
+  const addConsoleLog = createConsoleLogger(setConsoleLogs)
 
   const clearLogs = () => {
     setConsoleLogs([])
   }
 
-  // Add API call tracking
-  const trackApiCall = (
-    method: string,
-    endpoint: string,
-    status: number,
-    data: unknown,
-    duration: number,
-  ) => {
-    const apiCall: ApiCall = {
-      id: Date.now().toString(),
-      timestamp: new Date().toISOString(),
-      method,
-      endpoint,
-      status,
-      data,
-      duration,
-    }
-    setApiCalls((prev) => [apiCall, ...prev.slice(0, 19)]) // Keep last 20 calls
-    addConsoleLog(`🌐 API ${method} ${endpoint} - ${status} (${duration}ms)`)
-  }
+  // API call tracking using utilities
+  const trackApiCall = createApiCallTracker(setApiCalls, addConsoleLog)
+  const makeApiCall = createMakeApiCall(trackApiCall)
 
   const clearApiCalls = () => {
     setApiCalls([])
-  }
-
-  // Enhanced fetch wrapper that tracks API calls
-  const makeApiCall = async (
-    method: string,
-    endpoint: string,
-    body?: unknown,
-  ): Promise<Response> => {
-    const startTime = Date.now()
-
-    try {
-      const response = await fetch(endpoint, {
-        method,
-        headers: body ? { "Content-Type": "application/json" } : {},
-        body: body ? JSON.stringify(body) : undefined,
-      })
-
-      const responseData = await response.json()
-      const duration = Date.now() - startTime
-
-      trackApiCall(method, endpoint, response.status, responseData, duration)
-
-      return new Response(JSON.stringify(responseData), {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-      })
-    } catch (error) {
-      const duration = Date.now() - startTime
-      const errorData = {
-        error: error instanceof Error ? error.message : "Network error",
-      }
-
-      trackApiCall(method, endpoint, 0, errorData, duration)
-      throw error
-    }
-  }
-
-  const getStatusColor = (status: number) => {
-    if (status >= 200 && status < 300) return "text-green-600 bg-green-100"
-    if (status >= 400 && status < 500) return "text-red-600 bg-red-100"
-    if (status >= 500) return "text-red-600 bg-red-200"
-    return "text-gray-600 bg-gray-100"
   }
 
   // Simulate version update that requires re-consent
@@ -393,7 +320,6 @@ export default function ScenariosPage() {
         "Manually trigger the consent modal to appear, regardless of current consent status.",
       action: "show",
       buttonText: "Show Modal",
-      buttonClass: "demo-button-primary",
     },
     {
       id: "new-user",
@@ -402,7 +328,6 @@ export default function ScenariosPage() {
         "Simulate what a new user sees when they first visit the application.",
       action: "simulate",
       buttonText: "Simulate New User",
-      buttonClass: "demo-button-success",
       status: "undefined",
     },
     {
@@ -412,7 +337,6 @@ export default function ScenariosPage() {
         "Simulate when consent version is updated and user needs to re-consent.",
       action: "version-update",
       buttonText: "Simulate Update",
-      buttonClass: "demo-button-warning",
       status: "pending",
     },
     {
@@ -422,7 +346,6 @@ export default function ScenariosPage() {
         "See how the application behaves for users who have declined consent.",
       action: "simulate",
       buttonText: "Simulate Opt-out",
-      buttonClass: "demo-button-danger",
       status: "opted-out",
     },
     {
@@ -432,7 +355,6 @@ export default function ScenariosPage() {
         "Experience the application as a public servant (different consent rules may apply).",
       action: "public-servant",
       buttonText: "Switch to Public Servant",
-      buttonClass: "demo-button-secondary",
     },
   ]
 
@@ -468,13 +390,6 @@ export default function ScenariosPage() {
       case "public-servant":
         await simulatePublicServant()
         break
-
-      case "mobile":
-        addConsoleLog("📱 Showing mobile responsiveness info")
-        alert(
-          "Try resizing your browser window or opening this on a mobile device to see the responsive design.",
-        )
-        break
     }
 
     addConsoleLog(`✨ Completed scenario: ${scenario.title}`)
@@ -483,180 +398,48 @@ export default function ScenariosPage() {
   }
 
   return (
-    <div className='min-h-screen bg-gray-50 py-8'>
-      <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8'>
-        {/* Header */}
-        <div className='mb-8'>
-          <nav className='text-sm breadcrumbs mb-4'>
-            <Link href='/' className='text-blue-600 hover:text-blue-800'>
-              Home
-            </Link>
-            <span className='mx-2 text-gray-500'>›</span>
-            <span className='text-gray-700'>Scenarios</span>
-          </nav>
+    <Stack gap={8}>
+      <Paragraph>
+        Explore different consent scenarios and see how the system responds to
+        various user states and interactions.
+      </Paragraph>
 
-          <h1 className='text-2xl! font-bold! text-gray-900 mb-4'>
-            Consent Scenarios
-          </h1>
-          <p className='text-lg text-gray-600'>
-            Explore different consent scenarios and see how the system responds
-            to various user states and interactions.
-          </p>
-        </div>
+      <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
+        {scenarios.map((scenario) => (
+          <Card type='horizontal' key={scenario.id}>
+            <CardContainer>
+              <CardHeader>
+                <CardTitle>{scenario.title}</CardTitle>
+                <Paragraph size='sm'>{scenario.description}</Paragraph>
+              </CardHeader>
 
-        {/* Scenarios Grid */}
-        <div className='grid md:grid-cols-2 gap-6 mb-8'>
-          {scenarios.map((scenario) => (
-            <div key={scenario.id} className='demo-card'>
-              <div className='flex items-start justify-between mb-3'>
-                <h3 className='text-lg! font-semibold!'>{scenario.title}</h3>
-                {scenario.status && (
-                  <span className={`status-badge status-${scenario.status}`}>
-                    {scenario.status}
-                  </span>
-                )}
-              </div>
-
-              <p className='text-gray-600 mb-4'>{scenario.description}</p>
-
-              <button
-                type='button'
-                onClick={() => handleScenarioAction(scenario)}
-                disabled={activeScenario === scenario.id}
-                className={`demo-button ${scenario.buttonClass} ${
-                  activeScenario === scenario.id
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
-                }`}
-              >
-                {activeScenario === scenario.id
-                  ? "Processing..."
-                  : scenario.buttonText}
-              </button>
-            </div>
-          ))}
-        </div>
-
-        {/* Console Logs */}
-        <div className='demo-card mt-8'>
-          <div className='flex items-center justify-between mb-4'>
-            <h3 className='text-lg! font-semibold!'>Console Logs</h3>
-            <div className='flex gap-2'>
-              <span className='text-sm text-gray-500'>
-                {consoleLogs.length} logs
-              </span>
-              <button
-                type='button'
-                onClick={clearLogs}
-                className='text-xs demo-button demo-button-warning px-2 py-1'
-              >
-                Clear Logs
-              </button>
-            </div>
-          </div>
-
-          {consoleLogs.length === 0 ? (
-            <div className='text-center py-6 text-gray-500'>
-              <div className='text-2xl mb-2'>📝</div>
-              <p>No console logs yet.</p>
-              <p className='text-sm'>
-                Try different scenarios to see logs appear here.
-              </p>
-            </div>
-          ) : (
-            <div className='space-y-2 max-h-64 overflow-y-auto bg-gray-900 rounded-lg p-3 font-mono text-sm'>
-              {consoleLogs.map((log) => (
-                <div
-                  key={log.id}
-                  className={`flex items-start gap-2 ${
-                    log.type === "error"
-                      ? "text-red-400"
-                      : log.type === "warning"
-                        ? "text-yellow-400"
-                        : "text-green-400"
+              <CardAction>
+                <Button
+                  type='button'
+                  variant='secondary'
+                  onClick={() => handleScenarioAction(scenario)}
+                  disabled={activeScenario === scenario.id}
+                  className={`gi-w-full gi-justify-center ${
+                    activeScenario === scenario.id
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
                   }`}
                 >
-                  <span className='text-gray-500 text-xs flex-shrink-0 mt-0.5'>
-                    {new Date(log.timestamp).toLocaleTimeString()}
-                  </span>
-                  <span className='flex-1 break-words'>{log.message}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* API Calls Log */}
-        <div className='demo-card mt-8'>
-          <div className='flex items-center justify-between mb-4'>
-            <h3 className='text-lg! font-semibold!'>API Calls</h3>
-            <div className='flex gap-2'>
-              <span className='text-sm text-gray-500'>
-                {apiCalls.length} calls made
-              </span>
-              <button
-                type='button'
-                onClick={clearApiCalls}
-                className='text-xs demo-button demo-button-warning px-2 py-1'
-              >
-                Clear API Calls
-              </button>
-            </div>
-          </div>
-
-          {apiCalls.length === 0 ? (
-            <div className='text-center py-6 text-gray-500'>
-              <div className='text-2xl mb-2'>🔗</div>
-              <p>No API calls made yet.</p>
-              <p className='text-sm'>
-                Try scenarios that make API calls to see them appear here.
-              </p>
-            </div>
-          ) : (
-            <div className='space-y-3 max-h-64 overflow-y-auto'>
-              {apiCalls.map((call) => (
-                <div
-                  key={call.id}
-                  className='border border-gray-200 rounded-lg p-3 bg-white'
-                >
-                  <div className='flex items-center justify-between mb-2'>
-                    <div className='flex items-center space-x-2'>
-                      <span className='font-mono text-sm font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded'>
-                        {call.method}
-                      </span>
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusColor(call.status)}`}
-                      >
-                        {call.status || "ERR"}
-                      </span>
-                    </div>
-                    <div className='text-xs text-gray-500'>
-                      {call.duration}ms
-                    </div>
-                  </div>
-
-                  <div className='text-sm text-gray-700 mb-2 font-mono'>
-                    {call.endpoint}
-                  </div>
-
-                  <div className='text-xs text-gray-500 mb-2'>
-                    {new Date(call.timestamp).toLocaleString()}
-                  </div>
-
-                  <details className='text-xs'>
-                    <summary className='cursor-pointer text-blue-600 hover:text-blue-800'>
-                      View Response
-                    </summary>
-                    <pre className='mt-2 p-2 bg-gray-50 rounded overflow-x-auto'>
-                      {JSON.stringify(call.data, null, 2)}
-                    </pre>
-                  </details>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                  {activeScenario === scenario.id
+                    ? "Processing..."
+                    : scenario.buttonText}
+                </Button>
+              </CardAction>
+            </CardContainer>
+          </Card>
+        ))}
       </div>
-    </div>
+
+      <Stack gap={8}>
+        <ConsoleLogsCard logs={consoleLogs} onClearLogs={clearLogs} />
+
+        <ApiCallsCard apiCalls={apiCalls} onClearApiCalls={clearApiCalls} />
+      </Stack>
+    </Stack>
   )
 }

@@ -1,7 +1,18 @@
 "use client"
 
+import {
+  Alert,
+  Button,
+  Card,
+  CardAction,
+  CardContainer,
+  CardHeader,
+  CardTitle,
+  Heading,
+  Link,
+  Paragraph,
+} from "@govie-ds/react"
 import { ConsentStatuses, useConsent } from "@ogcio/consent"
-import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
 import { fetchConsentStatus } from "@/lib/consent"
 
@@ -98,165 +109,194 @@ export default function HomePage() {
   }
 
   return (
-    <div className='min-h-screen bg-gray-50 py-8'>
-      <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 gap-4'>
-        {/* Hero Section */}
-        <div className='text-center mb-12 flex flex-col items-center gap-2'>
-          {/* Package Information */}
-          <div className='demo-card bg-blue-50! border-blue-200!'>
-            <h3 className='text-lg! font-semibold! text-blue-800 mb-3'>
-              <Link
-                href='https://github.com/ogcio/consent'
-                target='_blank'
-                rel='noopener noreferrer'
-              >
-                @ogcio/consent
-              </Link>
-            </h3>
-            <p className='text-blue-700 mb-4'>
-              A reusable consent management package for Next.js applications
-            </p>
-          </div>
+    <>
+      <Paragraph>
+        A reusable consent management package for Next.js applications
+      </Paragraph>
 
-          {/* Current Consent Status */}
-          <div className='demo-card'>
-            <div className='flex flex-col gap-2'>
-              <div>
-                <span className='text-gray-600'>Status: </span>
-                {consentInfo && (
-                  <span className={getStatusBadgeClass(consentInfo.status)}>
-                    {consentInfo.status}
-                  </span>
-                )}
-              </div>
-              <div>
-                <span className='text-gray-600'>User Type: </span>
-                <span
-                  className={`status-badge ${userInfo.isPublicServant ? "status-pre-approved" : "status-undefined"}`}
-                >
-                  {userInfo.isPublicServant ? "Public Servant" : "Regular User"}
-                </span>
-              </div>
-              {consentInfo?.version && (
-                <div>
-                  <span className='text-gray-600'>Version: </span>
-                  <span className='font-mono text-xs bg-gray-100 px-2 py-1 rounded'>
-                    {consentInfo.version}
-                  </span>
-                </div>
-              )}
+      <div className='demo-card p-2! w-fit'>
+        <div className='flex flex-col gap-1'>
+          <div>
+            <span className='text-gray-600'>Status: </span>
+            {consentInfo && (
+              <span className={getStatusBadgeClass(consentInfo.status)}>
+                {consentInfo.status}
+              </span>
+            )}
+          </div>
+          <div>
+            <span className='text-gray-600'>User Type: </span>
+            <span
+              className={`status-badge ${userInfo.isPublicServant ? "status-pre-approved" : "status-undefined"}`}
+            >
+              {userInfo.isPublicServant ? "Public Servant" : "Regular User"}
+            </span>
+          </div>
+          {consentInfo?.version && (
+            <div>
+              <span className='text-gray-600'>Version: </span>
+              <span className='font-mono text-xs bg-gray-100 px-2 py-1 rounded'>
+                {consentInfo.version}
+              </span>
             </div>
-          </div>
-        </div>
-
-        {/* Current Status Information */}
-        {isOptedOut && (
-          <div className='demo-card bg-yellow-50 border-yellow-200'>
-            <h3 className='text-lg! font-semibold! text-yellow-800 mb-2'>
-              ⚠️ Limited Functionality
-            </h3>
-            <p className='text-yellow-700'>
-              You have declined consent, so some features in this demo may be
-              disabled or limited. You can change your consent preferences at
-              any time.
-            </p>
-          </div>
-        )}
-
-        {/* Public Servant Information */}
-        {userInfo.isPublicServant && (
-          <div className='demo-card bg-blue-50 border-blue-200'>
-            <h3 className='text-lg! font-semibold! text-blue-800 mb-2'>
-              🏛️ Public Servant Mode
-            </h3>
-            <p className='text-blue-700'>
-              You are currently experiencing the application as a public
-              servant. Enhanced privacy protections and different consent rules
-              may apply to government employees. This mode demonstrates how the
-              consent package can adapt to different user contexts.
-            </p>
-          </div>
-        )}
-
-        {/* Features Overview */}
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12'>
-          <div className='demo-card flex flex-col gap-2 justify-between'>
-            <h3 className='text-lg! font-semibold! mb-3'>
-              🎯 Smart Modal Logic
-            </h3>
-            <p className='text-gray-600 mb-4'>
-              The consent modal appears automatically based on user status,
-              consent version, and custom rules.
-            </p>
-            <button
-              type='button'
-              onClick={() => setIsConsentModalOpen(true)}
-              className='demo-button demo-button-primary text-center'
-            >
-              Force Show Modal
-            </button>
-          </div>
-
-          <div className='demo-card flex flex-col gap-2 justify-between'>
-            <h3 className='text-lg! font-semibold! mb-3'>
-              📊 Analytics Integration
-            </h3>
-            <p className='text-gray-600 mb-4'>
-              Track user consent decisions and modal interactions with built-in
-              analytics support.
-            </p>
-            <Link
-              href='/analytics'
-              className='demo-button demo-button-primary text-center'
-            >
-              View Analytics
-            </Link>
-          </div>
-
-          <div className='demo-card flex flex-col gap-2 justify-between'>
-            <h3 className='text-lg! font-semibold! mb-3'>
-              🔧 Multiple Scenarios
-            </h3>
-            <p className='text-gray-600 mb-4'>
-              Explore different consent scenarios and configurations in action.
-            </p>
-            <Link
-              href='/scenarios'
-              className='demo-button demo-button-primary text-center'
-            >
-              View Scenarios
-            </Link>
-          </div>
-
-          <div className='demo-card flex flex-col gap-2 justify-between'>
-            <h3 className='text-lg! font-semibold! mb-3'>⚙️ API Integration</h3>
-            <p className='text-gray-600 mb-4'>
-              See how to integrate with your backend API for consent storage and
-              retrieval.
-            </p>
-            <Link
-              href='/api-example'
-              className='demo-button demo-button-primary text-center'
-            >
-              API Examples
-            </Link>
-          </div>
-
-          <div className='demo-card flex flex-col gap-2 justify-between'>
-            <h3 className='text-lg! font-semibold! mb-3'>🌍 Multi-language</h3>
-            <p className='text-gray-600 mb-4'>
-              Built-in support for internationalization with English and Irish
-              languages.
-            </p>
-            <Link
-              href='/i18n'
-              className='demo-button demo-button-primary text-center'
-            >
-              Language Demo
-            </Link>
-          </div>
+          )}
         </div>
       </div>
-    </div>
+
+      {isOptedOut && (
+        <Alert variant='warning' title='Limited Functionality'>
+          You have declined consent, so some features in this demo may be
+          disabled or limited. You can change your consent preferences at any
+          time.
+        </Alert>
+      )}
+
+      {userInfo.isPublicServant && (
+        <Alert variant='info' title='Public Servant Mode'>
+          You are currently experiencing the application as a public servant.
+          Enhanced privacy protections and different consent rules may apply to
+          government employees. This mode demonstrates how the consent package
+          can adapt to different user contexts.
+        </Alert>
+      )}
+
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12'>
+        <Card type='horizontal'>
+          <CardContainer>
+            <CardHeader>
+              <CardTitle>
+                <Heading level={3} size='sm'>
+                  Smart Modal Logic
+                </Heading>
+              </CardTitle>
+              <Paragraph size='sm'>
+                The consent modal appears automatically based on user status,
+                consent version, and custom rules.
+              </Paragraph>
+            </CardHeader>
+            <CardAction>
+              <Button
+                type='button'
+                variant='secondary'
+                onClick={() => setIsConsentModalOpen(true)}
+                className='gi-w-full gi-justify-center'
+              >
+                Force Show Modal
+              </Button>
+            </CardAction>
+          </CardContainer>
+        </Card>
+
+        <Card type='horizontal'>
+          <CardContainer>
+            <CardHeader>
+              <CardTitle>
+                <Heading level={3} size='sm'>
+                  Analytics Integration
+                </Heading>
+              </CardTitle>
+              <Paragraph size='sm'>
+                Track user consent decisions and modal interactions with
+                built-in analytics support.
+              </Paragraph>
+            </CardHeader>
+
+            <CardAction>
+              <Link
+                href='/analytics'
+                asButton={{
+                  variant: "secondary",
+                  appearance: "default",
+                }}
+                className='gi-w-full gi-justify-center'
+              >
+                View Analytics
+              </Link>
+            </CardAction>
+          </CardContainer>
+        </Card>
+
+        <Card type='horizontal'>
+          <CardContainer>
+            <CardHeader>
+              <CardTitle>
+                <Heading level={3} size='sm'>
+                  Multiple Scenarios
+                </Heading>
+              </CardTitle>
+              <Paragraph size='sm'>
+                Explore different consent scenarios and configurations in
+                action.
+              </Paragraph>
+            </CardHeader>
+            <CardAction>
+              <Link
+                href='/scenarios'
+                asButton={{
+                  variant: "secondary",
+                }}
+                className='gi-w-full gi-justify-center'
+              >
+                View Scenarios
+              </Link>
+            </CardAction>
+          </CardContainer>
+        </Card>
+
+        <Card type='horizontal'>
+          <CardContainer>
+            <CardHeader>
+              <CardTitle>
+                <Heading level={3} size='sm'>
+                  API Integration
+                </Heading>
+              </CardTitle>
+              <Paragraph size='sm'>
+                See how to integrate with your backend API for consent storage
+                and retrieval.
+              </Paragraph>
+            </CardHeader>
+            <CardAction>
+              <Link
+                asButton={{
+                  variant: "secondary",
+                }}
+                href='/api-example'
+                className='gi-w-full gi-justify-center'
+              >
+                API Examples
+              </Link>
+            </CardAction>
+          </CardContainer>
+        </Card>
+
+        <Card type='horizontal'>
+          <CardContainer>
+            <CardHeader>
+              <CardTitle>
+                <Heading level={3} size='sm'>
+                  Multi-language
+                </Heading>
+              </CardTitle>
+              <Paragraph size='sm'>
+                Built-in support for internationalization with English and Irish
+                languages.
+              </Paragraph>
+            </CardHeader>
+            <CardAction>
+              <Link
+                href='/i18n'
+                asButton={{
+                  variant: "secondary",
+                }}
+                className='gi-w-full gi-justify-center'
+              >
+                Language Demo
+              </Link>
+            </CardAction>
+          </CardContainer>
+        </Card>
+      </div>
+    </>
   )
 }

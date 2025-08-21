@@ -1,17 +1,44 @@
 "use client"
 
 import {
+  Button,
+  Caption,
+  Card,
+  CardAction,
+  CardContainer,
+  CardHeader,
+  Paragraph,
+  Stack,
+  SummaryList,
+  SummaryListRow,
+  SummaryListValue,
+  Table,
+  TableBody,
+  TableData,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Tag,
+} from "@govie-ds/react"
+import {
   ConsentProvider,
   type ConsentStatuses,
   useConsent,
 } from "@ogcio/consent"
-import Link from "next/link"
 import { useEffect, useState } from "react"
+import { ApiCallsCard } from "@/components/ApiCallsCard"
+import { ConsoleLogsCard } from "@/components/ConsoleLogsCard"
+import type { ApiCall, ConsoleLog } from "@/components/types"
 import {
   createAnalyticsConsentConfig,
   fetchConsentStatus,
   mockUser,
 } from "@/lib/consent"
+import {
+  createApiCallTracker,
+  createConsoleLogger,
+  createMakeApiCall,
+} from "@/utils/apiUtils"
 
 interface AnalyticsEvent {
   id: string
@@ -22,13 +49,6 @@ interface AnalyticsEvent {
   timestamp: string
 }
 
-interface ConsoleLog {
-  id: string
-  message: string
-  type: "info" | "error" | "warning"
-  timestamp: string
-}
-
 interface AnalyticsContentProps {
   analyticsEvents: AnalyticsEvent[]
   trackAnalyticsEvent: (event: AnalyticsEvent) => void
@@ -36,6 +56,13 @@ interface AnalyticsContentProps {
   clearEvents: () => void
   consoleLogs: ConsoleLog[]
   clearLogs: () => void
+  apiCalls: ApiCall[]
+  clearApiCalls: () => void
+  makeApiCall: (
+    method: string,
+    endpoint: string,
+    body?: unknown,
+  ) => Promise<Response>
 }
 
 function AnalyticsContent({
@@ -45,6 +72,9 @@ function AnalyticsContent({
   clearEvents,
   consoleLogs,
   clearLogs,
+  apiCalls,
+  clearApiCalls,
+  makeApiCall,
 }: AnalyticsContentProps) {
   const [isAnalyticsEnabled, setIsAnalyticsEnabled] = useState(false)
   const { setIsConsentModalOpen } = useConsent()
@@ -90,235 +120,179 @@ function AnalyticsContent({
     trackAnalyticsEvent(analyticsEvent)
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "opted-in":
-        return "text-green-600 bg-green-100"
-      case "opted-out":
-        return "text-red-600 bg-red-100"
-      case "pending":
-        return "text-yellow-600 bg-yellow-100"
-      default:
-        return "text-gray-600 bg-gray-100"
-    }
-  }
-
   return (
-    <div className='min-h-screen bg-gray-50 py-8'>
-      <div className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8'>
-        {/* Header */}
-        <div className='mb-8'>
-          <nav className='text-sm breadcrumbs mb-4'>
-            <Link href='/' className='text-blue-600 hover:text-blue-800'>
-              Home
-            </Link>
-            <span className='mx-2 text-gray-500'>›</span>
-            <span className='text-gray-700'>Analytics</span>
-          </nav>
+    <Stack gap={8}>
+      <Paragraph>
+        Demonstrate how the consent package integrates with analytics tracking
+        systems.
+      </Paragraph>
 
-          <h1 className='text-3xl! font-bold! text-gray-900 mb-4'>
-            Analytics Integration
-          </h1>
-          <p className='text-lg text-gray-600'>
-            Demonstrate how the consent package integrates with analytics
-            tracking systems.
-          </p>
+      <div className='grid lg:grid-cols-3 gap-8'>
+        <div className='lg:col-span-1'>
+          <Card type='horizontal'>
+            <CardContainer>
+              <CardHeader>
+                <SummaryList>
+                  <SummaryListRow label='Consent Status' withBorder>
+                    <SummaryListValue>
+                      <Tag
+                        text={consentStatus}
+                        type={
+                          consentStatus === "opted-in"
+                            ? "success"
+                            : consentStatus === "opted-out"
+                              ? "error"
+                              : "default"
+                        }
+                      />
+                    </SummaryListValue>
+                  </SummaryListRow>
+
+                  <SummaryListRow label='Analytics Enabled' withBorder>
+                    <SummaryListValue>
+                      <Tag
+                        text={isAnalyticsEnabled ? "Yes" : "No"}
+                        type={isAnalyticsEnabled ? "success" : "error"}
+                      />
+                    </SummaryListValue>
+                  </SummaryListRow>
+
+                  <SummaryListRow label='Events Tracked' withBorder>
+                    <SummaryListValue>
+                      <Tag
+                        text={analyticsEvents.length.toString()}
+                        type='info'
+                      />
+                    </SummaryListValue>
+                  </SummaryListRow>
+                </SummaryList>
+              </CardHeader>
+              <CardAction>
+                <div className='mt-6 space-y-3 flex flex-col gap-2'>
+                  <Button
+                    onClick={() =>
+                      trackCustomEvent("button_click", "demo", "test_tracking")
+                    }
+                    variant='secondary'
+                    type='button'
+                    disabled={!isAnalyticsEnabled}
+                    className='w-full gi-justify-center'
+                  >
+                    Track Test Event
+                  </Button>
+
+                  <Button
+                    onClick={() =>
+                      trackCustomEvent(
+                        "page_view",
+                        "analytics",
+                        "manual_trigger",
+                        1,
+                      )
+                    }
+                    type='button'
+                    variant='secondary'
+                    disabled={!isAnalyticsEnabled}
+                    className='w-full gi-justify-center'
+                  >
+                    Track Page View
+                  </Button>
+
+                  <Button
+                    type='button'
+                    variant='secondary'
+                    onClick={clearEvents}
+                    className='w-full gi-justify-center'
+                  >
+                    Clear Events
+                  </Button>
+
+                  <Button
+                    type='button'
+                    variant='secondary'
+                    onClick={() => setIsConsentModalOpen(true)}
+                    className='w-full gi-justify-center'
+                  >
+                    Show Consent Modal
+                  </Button>
+
+                  <Button
+                    type='button'
+                    variant='secondary'
+                    onClick={() =>
+                      makeApiCall(
+                        "GET",
+                        "/api/consent/status?subject=analytics&userId=user-123",
+                      )
+                    }
+                    className='w-full gi-justify-center'
+                  >
+                    Check Analytics Status
+                  </Button>
+
+                  <Button
+                    type='button'
+                    variant='secondary'
+                    onClick={() =>
+                      makeApiCall("POST", "/api/consent/submit", {
+                        accept: true,
+                        subject: "analytics",
+                        preferredLanguage: "en",
+                        versionId: "v1.2.0",
+                      })
+                    }
+                    className='w-full gi-justify-center'
+                  >
+                    Submit Analytics Consent
+                  </Button>
+                </div>
+              </CardAction>
+            </CardContainer>
+          </Card>
         </div>
 
-        <div className='grid lg:grid-cols-3 gap-8'>
-          {/* Analytics Status Panel */}
-          <div className='lg:col-span-1'>
-            <div className='demo-card'>
-              <h3 className='text-lg! font-semibold! mb-4!'>
-                Analytics Status
-              </h3>
-
-              <div className='space-y-2'>
-                <div className='flex items-center justify-between gap-2'>
-                  <div className='block text-sm font-medium text-gray-700 mb-1'>
-                    Consent Status
-                  </div>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${getStatusColor(consentStatus)}`}
-                  >
-                    {consentStatus}
-                  </span>
-                </div>
-
-                <div className='flex items-center justify-between gap-2'>
-                  <div className='block text-sm font-medium text-gray-700 mb-1'>
-                    Analytics Enabled
-                  </div>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${isAnalyticsEnabled ? "text-green-600 bg-green-100" : "text-red-600 bg-red-100"}`}
-                  >
-                    {isAnalyticsEnabled ? "Yes" : "No"}
-                  </span>
-                </div>
-
-                <div className='flex items-center justify-between gap-2'>
-                  <div className='block text-sm font-medium text-gray-700 mb-1'>
-                    Events Tracked
-                  </div>
-                  <span className='text-sm font-bold text-blue-600'>
-                    {analyticsEvents.length}
-                  </span>
-                </div>
-              </div>
-
-              <div className='mt-6 space-y-3 flex flex-col gap-2'>
-                <button
-                  onClick={() =>
-                    trackCustomEvent("button_click", "demo", "test_tracking")
-                  }
-                  type='button'
-                  disabled={!isAnalyticsEnabled}
-                  className={`w-full demo-button ${isAnalyticsEnabled ? "demo-button-primary" : "demo-button-secondary opacity-50"}`}
-                >
-                  Track Test Event
-                </button>
-
-                <button
-                  onClick={() =>
-                    trackCustomEvent(
-                      "page_view",
-                      "analytics",
-                      "manual_trigger",
-                      1,
-                    )
-                  }
-                  type='button'
-                  disabled={!isAnalyticsEnabled}
-                  className={`w-full demo-button ${isAnalyticsEnabled ? "demo-button-success" : "demo-button-secondary opacity-50"}`}
-                >
-                  Track Page View
-                </button>
-
-                <button
-                  type='button'
-                  onClick={clearEvents}
-                  className='w-full demo-button demo-button-warning'
-                >
-                  Clear Events
-                </button>
-
-                <button
-                  type='button'
-                  onClick={() => setIsConsentModalOpen(true)}
-                  className='w-full demo-button demo-button-secondary'
-                >
-                  Show Consent Modal
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Events Timeline */}
-          <div className='lg:col-span-2'>
-            <div className='demo-card'>
-              <div className='flex items-center justify-between mb-4'>
-                <h3 className='text-lg! font-semibold!'>Events Timeline</h3>
-                <span className='text-sm text-gray-500'>
-                  {analyticsEvents.length} events tracked
-                </span>
-              </div>
-
-              {analyticsEvents.length === 0 ? (
-                <div className='text-center py-8 text-gray-500'>
-                  <div className='text-4xl mb-2'>📊</div>
-                  <p>No analytics events tracked yet.</p>
-                  <p className='text-sm'>
-                    {isAnalyticsEnabled
-                      ? "Click the buttons above to generate some events."
-                      : "Enable analytics consent to start tracking events."}
-                  </p>
-                </div>
-              ) : (
-                <div className='space-y-3 max-h-96 overflow-y-auto'>
+        {/* Events Timeline */}
+        <div className='lg:col-span-2'>
+          <Card type='horizontal'>
+            <CardContainer>
+              <Table>
+                <Caption>Events Timeline</Caption>
+                <TableHead>
+                  <TableRow>
+                    <TableHeader>Event</TableHeader>
+                    <TableHeader>Category</TableHeader>
+                    <TableHeader>Action</TableHeader>
+                    <TableHeader>Value</TableHeader>
+                    <TableHeader>Timestamp</TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
                   {analyticsEvents.map((event) => (
-                    <div
-                      key={event.id}
-                      className='border border-gray-200 rounded-lg p-3 bg-white'
-                    >
-                      <div className='flex items-center justify-between mb-2'>
-                        <h4 className='font-medium! text-gray-900'>
-                          {event.event}
-                        </h4>
-                        <span className='text-xs text-gray-500'>
-                          {new Date(event.timestamp).toLocaleTimeString()}
-                        </span>
-                      </div>
-                      <div className='grid grid-cols-2 gap-4 text-sm text-gray-600'>
-                        <div>
-                          <strong>Category:</strong> {event.category}
-                        </div>
-                        <div>
-                          <strong>Action:</strong> {event.action}
-                        </div>
-                        {event.value !== undefined && (
-                          <div className='col-span-2'>
-                            <strong>Value:</strong> {event.value}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <TableRow key={event.id}>
+                      <TableData>{event.event}</TableData>
+                      <TableData>{event.category}</TableData>
+                      <TableData>{event.action}</TableData>
+                      <TableData>{event.value}</TableData>
+                      <TableData>
+                        {new Date(event.timestamp).toLocaleTimeString()}
+                      </TableData>
+                    </TableRow>
                   ))}
-                </div>
-              )}
-            </div>
+                </TableBody>
+              </Table>
+            </CardContainer>
+          </Card>
+        </div>
 
-            {/* Console Logs */}
-            <div className='demo-card mt-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <h3 className='text-lg! font-semibold!'>Console Logs</h3>
-                <div className='flex gap-2'>
-                  <span className='text-sm text-gray-500'>
-                    {consoleLogs.length} logs
-                  </span>
-                  <button
-                    type='button'
-                    onClick={clearLogs}
-                    className='text-xs demo-button demo-button-warning px-2 py-1'
-                  >
-                    Clear Logs
-                  </button>
-                </div>
-              </div>
+        <div className='lg:col-span-3'>
+          <div className='flex flex-col gap-8'>
+            <ConsoleLogsCard logs={consoleLogs} onClearLogs={clearLogs} />
 
-              {consoleLogs.length === 0 ? (
-                <div className='text-center py-6 text-gray-500'>
-                  <div className='text-2xl mb-2'>📝</div>
-                  <p>No console logs yet.</p>
-                  <p className='text-sm'>
-                    Interact with the consent modal to see logs appear here.
-                  </p>
-                </div>
-              ) : (
-                <div className='space-y-2 max-h-64 overflow-y-auto bg-gray-900 rounded-lg p-3 font-mono text-sm'>
-                  {consoleLogs.map((log) => (
-                    <div
-                      key={log.id}
-                      className={`flex items-start gap-2 ${
-                        log.type === "error"
-                          ? "text-red-400"
-                          : log.type === "warning"
-                            ? "text-yellow-400"
-                            : "text-green-400"
-                      }`}
-                    >
-                      <span className='text-gray-500 text-xs flex-shrink-0 mt-0.5'>
-                        {new Date(log.timestamp).toLocaleTimeString()}
-                      </span>
-                      <span className='flex-1 break-words'>{log.message}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <ApiCallsCard apiCalls={apiCalls} onClearApiCalls={clearApiCalls} />
           </div>
         </div>
       </div>
-    </div>
+    </Stack>
   )
 }
 
@@ -329,6 +303,7 @@ export default function AnalyticsPage() {
   >()
   const [analyticsEvents, setAnalyticsEvents] = useState<AnalyticsEvent[]>([])
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([])
+  const [apiCalls, setApiCalls] = useState<ApiCall[]>([])
 
   // Load initial consent status for analytics
   useEffect(() => {
@@ -344,20 +319,10 @@ export default function AnalyticsPage() {
   // Create analytics consent configuration
   const analyticsConfig = createAnalyticsConsentConfig()
 
-  // Add console log
-  const addConsoleLog = (
-    message: string,
-    type: "info" | "error" | "warning" = "info",
-  ) => {
-    const log: ConsoleLog = {
-      id: Date.now().toString(),
-      message,
-      type,
-      timestamp: new Date().toISOString(),
-    }
-    setConsoleLogs((prev) => [log, ...prev.slice(0, 49)]) // Keep last 50 logs
-    console.log(message) // Also log to browser console
-  }
+  // Utility functions for logging and API tracking
+  const addConsoleLog = createConsoleLogger(setConsoleLogs)
+  const trackApiCall = createApiCallTracker(setApiCalls, addConsoleLog)
+  const makeApiCall = createMakeApiCall(trackApiCall)
 
   // Track analytics events
   const trackAnalyticsEvent = (event: AnalyticsEvent) => {
@@ -373,6 +338,10 @@ export default function AnalyticsPage() {
 
   const clearLogs = () => {
     setConsoleLogs([])
+  }
+
+  const clearApiCalls = () => {
+    setApiCalls([])
   }
 
   const events = {
@@ -448,6 +417,9 @@ export default function AnalyticsPage() {
         clearEvents={clearEvents}
         consoleLogs={consoleLogs}
         clearLogs={clearLogs}
+        apiCalls={apiCalls}
+        clearApiCalls={clearApiCalls}
+        makeApiCall={makeApiCall}
       />
     </ConsentProvider>
   )

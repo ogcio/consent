@@ -1,57 +1,31 @@
 @import "tailwindcss";
-@import "@govie-ds/theme-govie/theme.css";
-@import "@govie-ds/react/styles.css";
+
+.gi-card {
+  @apply rounded-md shadow-md p-4 border border-gray-200;
+}
+
+.gi-card-content {
+  @apply flex flex-col gap-2 justify-between min-h-full;
+}
+
+.gi-card-action {
+  @apply w-full;
+}
+
+.gi-alert-base {
+  @apply min-w-fit rounded-md;
+}
+
+.gi-card-heading {
+  @apply w-full;
+}
+
+.gi-card-horizontal {
+  @apply max-w-full;
+}
 
 /* Custom styles for the demo app */
 .demo-card {
   @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
-}
-
-.demo-button {
-  @apply px-4 py-2 rounded-md font-medium transition-colors;
-}
-
-.demo-button-primary {
-  @apply bg-blue-600 text-white hover:bg-blue-700;
-}
-
-.demo-button-secondary {
-  @apply bg-gray-600 text-white hover:bg-gray-700;
-}
-
-.demo-button-success {
-  @apply bg-green-600 text-white hover:bg-green-700;
-}
-
-.demo-button-warning {
-  @apply bg-yellow-600 text-white hover:bg-yellow-700;
-}
-
-.demo-button-danger {
-  @apply bg-red-600 text-white hover:bg-red-700;
-}
-
-/* Status indicators */
-.status-badge {
-  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium;
-}
-
-.status-undefined {
-  @apply bg-gray-100 text-gray-800;
-}
-
-.status-pending {
-  @apply bg-yellow-100 text-yellow-800;
-}
-
-.status-opted-in {
-  @apply bg-green-100 text-green-800;
-}
-
-.status-opted-out {
-  @apply bg-red-100 text-red-800;
-}
-
-.status-pre-approved {
-  @apply bg-blue-100 text-blue-800;
+  @apply flex flex-col gap-2 justify-between;
 }
