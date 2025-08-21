@@ -1,6 +1,6 @@
 {
   "name": "@ogcio/consent",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A reusable consent management package for Next.js applications",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
