@@ -2,6 +2,7 @@ import "./globals.css"
 import { Container, Footer, Header, Link, Stack } from "@govie-ds/react"
 import type { Metadata } from "next"
 import { ConsentWrapper } from "@/components/ConsentWrapper"
+import LayoutConsentStatus from "@/components/LayoutConsentStatus"
 import "@govie-ds/theme-govie/theme.css"
 import "@govie-ds/react/styles.css"
 
@@ -63,6 +64,7 @@ export default function RootLayout({
           <Container>
             <ConsentWrapper>
               <Stack gap={4} className='gi-mt-8'>
+                <LayoutConsentStatus />
                 {children}
               </Stack>
             </ConsentWrapper>
