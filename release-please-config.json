@@ -20,7 +20,9 @@
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
       "package-name": "@ogcio/consent",
-      "include-v-in-tag": true
+      "include-v-in-tag": true,
+      "extra-files": ["package.json"]
     }
-  }
+  },
+  "bootstrap-sha": "806327a"
 }
