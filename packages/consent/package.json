@@ -33,7 +33,10 @@
     "type-check": "tsc --noEmit",
     "test": "vitest",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "prepublishOnly": "pnpm i && pnpm build && pnpm test",
+    "preinstall": "npx only-allow pnpm",
+    "prepare": "husky || true"
   },
   "keywords": [
     "consent",
