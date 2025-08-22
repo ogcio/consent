@@ -15,8 +15,9 @@
     "test": "pnpm -r test",
     "test:watch": "pnpm -r test:watch",
     "test:coverage": "pnpm -r test:coverage",
-    "preinstall": "npx only-allow pnpm",
-    "prepare": "husky || true"
+    "preinstall": "pnpm --filter @ogcio/consent preinstall",
+    "prepare": "pnpm --filter @ogcio/consent prepare",
+    "prepublishOnly": "pnpm --filter @ogcio/consent prepublishOnly"
   },
   "keywords": [
     "consent",
