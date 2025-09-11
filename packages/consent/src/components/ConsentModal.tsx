@@ -13,8 +13,8 @@ import {
   Spinner,
   Stack,
   toaster,
-} from "@govie-ds/react"
-import { useEffect, useRef, useState } from "react"
+} from "@ogcio/design-system-react"
+import { useEffect, useId, useRef, useState } from "react"
 import type { ConsentAction } from "@/types"
 import { CONSENT_ACTIONS } from "@/types"
 import { useConsent } from "./ConsentProvider"
@@ -35,13 +35,18 @@ export const ConsentModal = () => {
   const isGlobalLoading = isLoading.accept || isLoading.decline
   const [error, setError] = useState<string | null>(null)
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false)
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const [hasSetBottomRef, setHasBottomRef] = useState(false)
+  const bottomRef = useRef<HTMLDivElement | null>(null)
 
   const { content, analyticsTracker, api } = config
   const preferredLanguage = config.userContext.getPreferredLanguage(userContext)
 
   // Set up intersection observer to track when user scrolls to bottom
   useEffect(() => {
+    if (!hasSetBottomRef) {
+      return
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries
@@ -54,7 +59,6 @@ export const ConsentModal = () => {
         threshold: 0.1, // Trigger when 10% of the element is visible
       },
     )
-
     if (bottomRef.current) {
       observer.observe(bottomRef.current)
     }
@@ -64,7 +68,7 @@ export const ConsentModal = () => {
         observer.unobserve(bottomRef.current)
       }
     }
-  }, [events])
+  }, [events, hasSetBottomRef])
 
   const doHandleConsent = async (accept: boolean) => {
     setError(null)
@@ -173,18 +177,35 @@ export const ConsentModal = () => {
     })
   }
 
+  const setBottomRef = (el: HTMLDivElement | null) => {
+    bottomRef.current = el
+    setHasBottomRef(true)
+  }
+
+  // Scroll modal content to top on open to encourage users to review consent before acting.
+  useEffect(() => {
+    if (isConsentModalOpen) {
+      const body = document.querySelector("#content-stack")?.parentElement
+      if (body) {
+        body.scrollTop = 0
+      }
+    }
+  }, [isConsentModalOpen])
+
+  const titleId = useId()
   return (
     <ModalWrapper
       size='md'
       isOpen={isConsentModalOpen}
       closeOnClick={false}
       closeOnOverlayClick={false}
+      aria-describedby={titleId}
       onClose={() => {
         setIsConsentModalOpen(false)
         events?.onModalClose?.()
       }}
     >
-      <ModalTitle>{content.title}</ModalTitle>
+      <ModalTitle id={titleId}>{content.title}</ModalTitle>
       <ModalBody>
         {/* Note: if we put this in the stack it will loose full-width */}
         {error && (
@@ -194,7 +215,7 @@ export const ConsentModal = () => {
             </Alert>
           </div>
         )}
-        <Stack direction='column' gap={4}>
+        <Stack direction='column' gap={4} id={`content-stack`}>
           {content.bodyParagraphs.map(
             (paragraph: string, paragraphIndex: number) => (
               <Paragraph
@@ -229,7 +250,7 @@ export const ConsentModal = () => {
             {renderTextWithLinks(content.footerText)}
           </Paragraph>
           {/* Invisible element to detect scroll to bottom */}
-          <div ref={bottomRef} style={{ height: "1px" }} />
+          <div ref={setBottomRef} style={{ height: "1px" }} />
         </Stack>
       </ModalBody>
       <ModalFooter>

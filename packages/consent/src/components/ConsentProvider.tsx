@@ -1,7 +1,7 @@
 "use client"
 
 // TODO: import the toast provider conditionally only if the consumers requires toasts
-import { ToastProvider } from "@govie-ds/react"
+import { ToastProvider } from "@ogcio/design-system-react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { ConsentStatuses } from "@/constants"
 import { ConsentModal } from "./ConsentModal"
