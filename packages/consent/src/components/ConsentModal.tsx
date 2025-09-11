@@ -182,7 +182,7 @@ export const ConsentModal = () => {
     setHasBottomRef(true)
   }
 
-  // Force the modal content to scroll to top on open so that the actively have to read through any consent before taking action
+  // Scroll modal content to top on open to encourage users to review consent before acting.
   useEffect(() => {
     if (isConsentModalOpen) {
       const body = document.querySelector("#content-stack")?.parentElement
