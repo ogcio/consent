@@ -188,6 +188,7 @@ export const ConsentModal = () => {
       const body = document.querySelector("#content-stack")?.parentElement
       if (body) {
         body.scrollTop = 0
+        setHasScrolledToBottom(false)
       }
     }
   }, [isConsentModalOpen])

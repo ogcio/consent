@@ -1,4 +1,4 @@
-import { Tag } from "@govie-ds/react"
+import { Tag } from "@ogcio/design-system-react"
 import { ConsentStatuses } from "@ogcio/consent"
 
 interface ConsentInfo {

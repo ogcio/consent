@@ -41,18 +41,18 @@ importers:
 
   apps/nextjs-example:
     dependencies:
-      '@govie-ds/react':
-        specifier: ^1.9.0
-        version: 1.9.0(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.46.3)
-      '@govie-ds/theme-govie':
-        specifier: ^1.4.1
-        version: 1.4.1
       '@ogcio/consent':
         specifier: workspace:*
         version: link:../../packages/consent
+      '@ogcio/design-system-react':
+        specifier: 1.16.0
+        version: 1.16.0(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.46.3)
       '@ogcio/nextjs-analytics':
         specifier: ^1.0.0
         version: 1.0.0
+      '@ogcio/theme-govie':
+        specifier: 1.7.0
+        version: 1.7.0
       next:
         specifier: 14.2.30
         version: 14.2.30(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -478,18 +478,6 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
-
-  '@govie-ds/react@1.9.0':
-    resolution: {integrity: sha512-O4eIjZNJxiNQHYBdfcyWUCtwjX8sUlL6KxO3VgV0hG1WWAlXIqNv3NxH6Zp6d/EVMBAWQi4Zt5zWu4MA6EwsEg==}
-    peerDependencies:
-      react: '*'
-      react-dom: '*'
-
-  '@govie-ds/theme-govie@1.4.1':
-    resolution: {integrity: sha512-BmjuazJBFEV7h/fMceIl5Lt3N3wm/iSyYyLiYO1xfaNu/PByN6Ne4CzLJLXhG86STkVyI9ruYy1Ig3ShgwGd9w==}
-
-  '@govie-ds/tokens@1.4.1':
-    resolution: {integrity: sha512-YrrCBmtO+hjxNyRE8CA85lyq8xx5SWfJrnMeuAYStOACXy1ERnV2vggg2v/wvfGxQM9PaAlzhF6aXMxa1pHdYg==}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -2576,22 +2564,6 @@ snapshots:
 
   '@esbuild/win32-x64@0.25.9':
     optional: true
-
-  '@govie-ds/react@1.9.0(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.46.3)':
-    dependencies:
-      '@govie-ds/tokens': 1.4.1
-      '@radix-ui/react-slot': 1.2.3(@types/react@18.3.23)(react@18.3.1)
-      clsx: 2.1.1
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-      rollup-preserve-directives: 1.1.3(rollup@4.46.3)
-    transitivePeerDependencies:
-      - '@types/react'
-      - rollup
-
-  '@govie-ds/theme-govie@1.4.1': {}
-
-  '@govie-ds/tokens@1.4.1': {}
 
   '@isaacs/cliui@8.0.2':
     dependencies:

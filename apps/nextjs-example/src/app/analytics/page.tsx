@@ -1,6 +1,11 @@
 "use client"
 
 import {
+  ConsentProvider,
+  type ConsentStatuses,
+  useConsent,
+} from "@ogcio/consent"
+import {
   Button,
   Caption,
   Card,
@@ -19,12 +24,7 @@ import {
   TableHeader,
   TableRow,
   Tag,
-} from "@govie-ds/react"
-import {
-  ConsentProvider,
-  type ConsentStatuses,
-  useConsent,
-} from "@ogcio/consent"
+} from "@ogcio/design-system-react"
 import { useEffect, useState } from "react"
 import { ApiCallsCard } from "@/components/ApiCallsCard"
 import { ConsoleLogsCard } from "@/components/ConsoleLogsCard"

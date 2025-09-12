@@ -9,7 +9,7 @@ import {
   CardTitle,
   Paragraph,
   Stack,
-} from "@govie-ds/react"
+} from "@ogcio/design-system-react"
 import { useState } from "react"
 import { ApiCallsCard } from "@/components/ApiCallsCard"
 import { ConsoleLogsCard } from "@/components/ConsoleLogsCard"
