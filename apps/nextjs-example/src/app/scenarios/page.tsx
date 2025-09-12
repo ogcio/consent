@@ -9,7 +9,7 @@ import {
   CardTitle,
   Paragraph,
   Stack,
-} from "@govie-ds/react"
+} from "@ogcio/design-system-react"
 import { useConsent } from "@ogcio/consent"
 import { useState } from "react"
 import { ApiCallsCard } from "@/components/ApiCallsCard"

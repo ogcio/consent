@@ -1,6 +1,6 @@
 "use client"
 
-import { Alert } from "@govie-ds/react"
+import { Alert } from "@ogcio/design-system-react"
 import { useConsent } from "@ogcio/consent"
 import { useCallback, useEffect, useState } from "react"
 import { fetchConsentStatus } from "@/lib/consent"
