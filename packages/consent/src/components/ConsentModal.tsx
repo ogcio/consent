@@ -258,7 +258,7 @@ export const ConsentModal = () => {
           />
 
           {/* Buttons on the right */}
-          <Stack direction='row' gap={4}>
+          <Stack direction='row' gap={4} itemsDistribution='end'>
             <Button
               key='decline-button'
               variant='secondary'
