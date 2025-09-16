@@ -34,7 +34,7 @@ export function ConsentWrapper({
     (typeof ConsentStatuses)[keyof typeof ConsentStatuses]
   >(ConsentStatuses.Undefined)
   const [userConsentVersion, setUserConsentVersion] = useState<
-    string | undefined
+    number | undefined
   >()
   const [isLoading, setIsLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState(mockUser)
@@ -109,7 +109,7 @@ export function ConsentWrapper({
       // Update local state
       setConsentStatus(accepted ? "opted-in" : "opted-out")
       // Always store the version that was consented to (accept or decline)
-      setUserConsentVersion(consentConfig.content.version.id)
+      setUserConsentVersion(consentConfig.content?.version)
 
       // Dispatch custom event to notify other components
       if (typeof window !== "undefined") {

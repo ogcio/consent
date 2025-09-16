@@ -18,7 +18,8 @@ export type ConsentProviderProps = {
   config: ConsentConfig
   userContext: ConsentUserContext
   consentStatus: ConsentStatus
-  userConsentVersion?: string
+  userConsentVersion?: number
+  userConsentStatementId?: string
   events?: ConsentEvents
   children: React.ReactNode
 }

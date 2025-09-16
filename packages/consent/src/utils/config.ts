@@ -1,5 +1,6 @@
 import type {
   ConsentConfig,
+  ConsentLinks,
   ConsentModalVisibilityParams,
   ConsentStatementContent,
   ConsentUserContext,
@@ -8,10 +9,11 @@ import { ConsentStatuses, FORCE_CONSENT_PARAM } from "@/types"
 
 export interface ConsentConfigBuilder {
   subject: string
-  content: ConsentStatementContent
+  content: ConsentStatementContent | undefined
   isConsentEnabled?: boolean
   forceModalParam?: string
   showToastOnSuccess?: boolean
+  links?: ConsentLinks
 }
 
 /**
@@ -23,10 +25,11 @@ export const createDefaultConsentConfig = ({
   isConsentEnabled = true,
   forceModalParam = FORCE_CONSENT_PARAM,
   showToastOnSuccess = true,
+  links,
 }: ConsentConfigBuilder): ConsentConfig => {
   return {
     subject,
-    content,
+    content: content && links ? { ...content, links } : content,
 
     userContext: {
       getPreferredLanguage: (user: ConsentUserContext) => {
@@ -40,8 +43,19 @@ export const createDefaultConsentConfig = ({
       consentStatus,
       searchParams,
       userConsentVersion,
+      userConsentStatementId,
       latestConsentVersion,
+      latestConsentStatementId,
     }: ConsentModalVisibilityParams) => {
+      console.log("shouldShowModal", {
+        userContext,
+        consentStatus,
+        searchParams,
+        userConsentVersion,
+        userConsentStatementId,
+        latestConsentVersion,
+        latestConsentStatementId,
+      })
       // 1. Feature flag check first
       if (!isConsentEnabled) return false
 
@@ -53,13 +67,16 @@ export const createDefaultConsentConfig = ({
         consentStatus === ConsentStatuses.OptedIn ||
         consentStatus === ConsentStatuses.OptedOut
 
+      // biome-ignore lint/correctness/noUnusedVariables: TODO: might be needed in the future
       const hasValidVersion = userConsentVersion === latestConsentVersion
+      const hasCurrentStatement =
+        userConsentStatementId === latestConsentStatementId
 
       // 4. Force show parameter check
       const shouldForceShowModal = searchParams.get(forceModalParam) === "1"
 
       // 5. Final decision: show if no valid consent OR outdated version OR forced
-      return !hasValidConsent || !hasValidVersion || shouldForceShowModal
+      return !hasValidConsent || !hasCurrentStatement || shouldForceShowModal
     },
 
     // API integration - this needs to be provided by the consuming application

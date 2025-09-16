@@ -7,57 +7,43 @@ export {
   DEFAULT_CONSENT_SUBJECT,
   FORCE_CONSENT_PARAM,
   MESSAGING_CONSENT_SUBJECT,
-} from "../constants"
+} from "@/constants"
 
-import type { ConsentStatus } from "../constants"
+import type { ConsentStatus } from "@/constants"
 
-// Backend API response structure
-export type ConsentStatementTranslation = {
-  id: string
-  consentStatementId: string
-  language: string
-  title: string | null
-  bodyTop: string[]
-  bodyList: string[]
-  bodyBottom: string[]
-  bodySmall: string[]
-  bodyFooter: string | null
-  bodyLinks: Record<string, string> // Dynamic links from backend (tc, pp, etc.)
-  createdAt: string
-}
-
+export type BuildingBlocksConsentStatus = NonNullable<
+  Awaited<ReturnType<BuildingBlocksProfileClient["getLatestConsent"]>>["data"]
+>["status"]
 export type ConsentStatementLanguages = "en" | "ga"
-
+export type BuildingBlocksConsentStatementData = NonNullable<
+  Awaited<
+    ReturnType<BuildingBlocksProfileClient["getCurrentConsentStatement"]>
+  >["data"]
+>[0]
+export type BuildingBlocksConsentStatementTranslation =
+  BuildingBlocksConsentStatementData["translations"][ConsentStatementLanguages]
+export type ConsentStatementTranslation =
+  BuildingBlocksConsentStatementTranslation
 export type ConsentStatementData = {
   id: string
   subject: string
   version: number
   createdAt: string
+  publishDate: string
+  isEnabled: boolean
+  createdBy: string
   translations: Record<ConsentStatementLanguages, ConsentStatementTranslation>
-}
-
-export type ConsentStatementResponse = {
-  data: ConsentStatementData
 }
 
 // Frontend content structure (transformed from backend)
 export type ConsentStatementContent = {
-  // Version tracking for consent updates
-  version: {
-    id: string
-    createdAt: string // ISO date string
-    description?: string // Optional description of what changed
-  }
-
+  id: string // Consent statement ID
+  version: number
+  publishDate: string
+  isEnabled: boolean
   title: string
-  bodyParagraphs: string[]
-  listItems: string[]
-  bodyBottom?: string[]
-  infoAlert?: {
-    title: string
-    items: string[]
-  }
-  footerText: string
+  description: string | null
+  disclaimer: string | null
   buttons: {
     accept: string
     decline: string
@@ -70,13 +56,18 @@ export type ConsentStatementContent = {
     title: string
     message: string
   }
-  // Dynamic links from backend
-  links: Record<string, string>
+  links?: ConsentLinks
 }
 
 export type ConsentLinks = {
-  privacyPolicy: string
-  termsAndConditions: string
+  privacyPolicy: {
+    url: string
+    text: string
+  }
+  termsAndConditions: {
+    url: string
+    text: string
+  }
 }
 
 export type ConsentResult = {
@@ -87,11 +78,12 @@ export type ConsentResult = {
 
 export type ConsentAPI = {
   readonly consentStatementId: string
+  readonly version: number
   submitConsent(params: {
     accept: boolean
     subject: string
     preferredLanguage?: string
-    versionId?: string
+    versionId?: number
   }): Promise<ConsentResult>
   setConsentToPending(subject: string): Promise<ConsentResult>
 }
@@ -130,16 +122,17 @@ export type ConsentModalVisibilityParams = {
   userContext: ConsentUserContext
   consentStatus: ConsentStatus
   searchParams: URLSearchParams
-  // Version tracking for checking if user needs to re-consent
-  userConsentVersion?: string // Version ID the user previously consented to
-  latestConsentVersion: string // Latest version ID from API
+  userConsentVersion?: number
+  userConsentStatementId?: string
+  latestConsentVersion: number
+  latestConsentStatementId: string
 }
 
 export type ConsentConfig = {
   subject: string
 
-  // Content (from backend) - now includes links
-  content: ConsentStatementContent
+  // Content
+  content: ConsentStatementContent | undefined
 
   // User context configuration
   userContext: {
@@ -150,7 +143,7 @@ export type ConsentConfig = {
   shouldShowModal: (params: ConsentModalVisibilityParams) => boolean
 
   // API integration
-  api: (latestConsentVersion: string) => ConsentAPI
+  api: (latestConsentVersion: number, consentStatementId: string) => ConsentAPI
 
   // Analytics (optional)
   analytics?: ConsentAnalytics
@@ -173,6 +166,14 @@ export type ConsentConfig = {
 
   // URL parameters
   forceModalParam?: string
+
+  // Language switcher configuration (optional)
+  languageSwitcher?: {
+    translations: {
+      english: string
+      irish: string
+    }
+  }
 }
 
 export type ConsentEvents = {
@@ -183,64 +184,35 @@ export type ConsentEvents = {
   onScrollToBottom?: () => void
 }
 
-// Default content for fallback scenarios
-export const DEFAULT_CONSENT_CONTENT = {
-  title: "Consent Required",
-  bodyParagraphs: [
-    "This application requires your consent to proceed.",
-    "Please review the information below and provide your consent.",
-  ],
-  listItems: [
-    "We will process your data in accordance with our privacy policy",
-    "You can withdraw your consent at any time",
-  ],
-  footerText:
-    "By accepting, you agree to our terms and conditions and privacy policy.",
-  buttons: {
-    accept: "Accept",
-    decline: "Decline",
-  },
-  success: {
-    title: "Consent Updated",
-    message: "Your consent preferences have been updated successfully.",
-  },
-  error: {
-    title: "Error",
-    message: "An error occurred while updating your consent. Please try again.",
-  },
-  links: {
-    tc: "#",
-    pp: "#",
-  },
-  version: {
-    id: "default",
-    createdAt: new Date().toISOString(),
-  },
-}
+export type BuildingBlocksError = NonNullable<
+  Awaited<ReturnType<BuildingBlocksProfileClient["submitConsent"]>>["error"]
+>
 
-// Server-side types
-export type ProfileClient = {
-  submitConsent: (params: {
-    status: string
-    subject: string
-    consentStatementId: string
-  }) => Promise<{ error?: { detail: string } }>
-  getLatestConsentStatement: (params: { subject: string }) => Promise<{
-    error?: { detail: string }
-    data?: { data: ConsentStatementData }
-  }>
-}
+export type BuildingBlocksProfileClient = ReturnType<
+  typeof import("@ogcio/building-blocks-sdk").getBuildingBlockSDK
+>["profile"]["citizen"]
 
-export type FeatureFlagsClient = {
-  isFlagEnabled: (
-    flagName: string,
-    context: { userId: string },
-  ) => Promise<boolean>
-}
+export type FeatureFlagsClient = ReturnType<
+  typeof import("@ogcio/building-blocks-sdk").getBuildingBlockSDK
+>["featureFlags"]
+
+export type BuildingBlocksConsentResponse = Awaited<
+  ReturnType<BuildingBlocksProfileClient["getLatestConsent"]>
+>["data"]
+export type BuildingBlocksConsentsListResponse = Awaited<
+  ReturnType<BuildingBlocksProfileClient["listConsents"]>
+>["data"]
+export type BuildingBlocksConsentStatementResponse = Awaited<
+  ReturnType<BuildingBlocksProfileClient["getCurrentConsentStatement"]>
+>["data"]
 
 export type BuildingBlocksClients = {
-  profileClient: ProfileClient
+  profileClient: BuildingBlocksProfileClient
   featureFlagsClient: FeatureFlagsClient
+}
+
+export type StandardError = {
+  error: { detail: string }
 }
 
 export type Logger = {

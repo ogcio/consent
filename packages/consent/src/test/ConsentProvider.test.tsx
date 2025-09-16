@@ -1,11 +1,7 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
-import { ConsentProvider } from "@/components/ConsentProvider"
-import {
-  ConsentStatuses,
-  type ConsentUserContext,
-  DEFAULT_CONSENT_CONTENT,
-} from "@/types"
+import { ConsentProvider, useConsent } from "@/components/ConsentProvider"
+import { ConsentStatuses, type ConsentUserContext } from "@/types"
 
 // Mock the ConsentModal component
 vi.mock("@/components/ConsentModal", () => ({
@@ -14,13 +10,14 @@ vi.mock("@/components/ConsentModal", () => ({
 
 const mockConfig = {
   subject: "test-subject",
-  content: DEFAULT_CONSENT_CONTENT,
+  content: undefined,
   userContext: {
     getPreferredLanguage: (user: ConsentUserContext) => user.preferredLanguage,
   },
   shouldShowModal: vi.fn(() => false),
   api: vi.fn(() => ({
     consentStatementId: "test-id",
+    version: 1,
     submitConsent: vi.fn(),
     setConsentToPending: vi.fn(),
   })),
@@ -103,6 +100,3 @@ describe("ConsentProvider", () => {
     expect(screen.getByTestId("user-language")).toHaveTextContent("en")
   })
 })
-
-// Import useConsent hook for testing
-import { useConsent } from "@/components/ConsentProvider"

@@ -1,5 +1,6 @@
 "use client"
 
+import { useConsent } from "@ogcio/consent"
 import {
   Button,
   Card,
@@ -10,7 +11,6 @@ import {
   Paragraph,
   Stack,
 } from "@ogcio/design-system-react"
-import { useConsent } from "@ogcio/consent"
 import { useState } from "react"
 import { ApiCallsCard } from "@/components/ApiCallsCard"
 import { ConsoleLogsCard } from "@/components/ConsoleLogsCard"
@@ -203,7 +203,7 @@ export default function ScenariosPage() {
         accept: false,
         subject: config.subject,
         preferredLanguage: "en",
-        versionId: config.content.version.id,
+        versionId: config.content?.version.toString(),
       })
 
       if (!declineResponse.ok) {
