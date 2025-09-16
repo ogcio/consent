@@ -64,7 +64,7 @@
     "react-dom": "^18.3.1"
   },
   "dependencies": {
-    "@ogcio/design-system-react": "1.16.0",
+    "@ogcio/design-system-react": "1.17.1",
     "@ogcio/theme-govie": "1.7.0"
   },
   "devDependencies": {
