@@ -258,7 +258,7 @@ export const ConsentModal = () => {
           />
 
           {/* Buttons on the right */}
-          <div style={{ display: "flex", gap: "0.75rem" }}>
+          <Stack direction='row' gap={4}>
             <Button
               key='decline-button'
               variant='secondary'
@@ -279,7 +279,7 @@ export const ConsentModal = () => {
               {content.buttons.accept}
               {isLoading.accept && <Spinner key='accept-spinner' />}
             </Button>
-          </div>
+          </Stack>
         </Stack>
       </div>
     </ModalWrapper>
