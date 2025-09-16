@@ -14,6 +14,7 @@ export const ConsentProvider: React.FC<ConsentProviderProps> = ({
   userContext,
   consentStatus,
   userConsentVersion,
+  userConsentStatementId,
   events,
   children,
 }) => {
@@ -29,14 +30,23 @@ export const ConsentProvider: React.FC<ConsentProviderProps> = ({
       consentStatus,
       searchParams: new URLSearchParams(window.location.search),
       userConsentVersion,
-      latestConsentVersion: config.content.version.id,
+      userConsentStatementId,
+      latestConsentVersion: config.content?.version ?? 0,
+      latestConsentStatementId: config.content?.id ?? "",
     })
 
     if (shouldShow) {
       setIsConsentModalOpen(true)
       events?.onModalOpen?.()
     }
-  }, [config, userContext, consentStatus, userConsentVersion, events])
+  }, [
+    config,
+    userContext,
+    consentStatus,
+    userConsentVersion,
+    userConsentStatementId,
+    events,
+  ])
 
   const contextValue: ConsentContextValue = {
     isConsentModalOpen,
