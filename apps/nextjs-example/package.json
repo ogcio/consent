@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@ogcio/consent": "workspace:*",
-    "@ogcio/design-system-react": "1.16.0",
+    "@ogcio/design-system-react": "1.17.1",
     "@ogcio/theme-govie": "1.7.0",
     "@ogcio/nextjs-analytics": "^1.0.0",
     "next": "14.2.30",

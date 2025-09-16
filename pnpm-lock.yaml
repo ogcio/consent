@@ -45,8 +45,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/consent
       '@ogcio/design-system-react':
-        specifier: 1.16.0
-        version: 1.16.0(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.46.3)
+        specifier: 1.17.1
+        version: 1.17.1(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.46.3)
       '@ogcio/nextjs-analytics':
         specifier: ^1.0.0
         version: 1.0.0
@@ -82,8 +82,8 @@ importers:
   packages/consent:
     dependencies:
       '@ogcio/design-system-react':
-        specifier: 1.16.0
-        version: 1.16.0(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.46.3)
+        specifier: 1.17.1
+        version: 1.17.1(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.46.3)
       '@ogcio/theme-govie':
         specifier: 1.7.0
         version: 1.7.0
@@ -580,8 +580,8 @@ packages:
     resolution: {integrity: sha512-wLP9hQ+JPKhUFFOji1fHDguJuokY8nUVLPC67NK1rlpNS88LTCTBpUDocD5jXFjJfjbuaOQ3IRtAoxgA+UKCzw==}
     engines: {node: '>=17.0.0'}
 
-  '@ogcio/design-system-react@1.16.0':
-    resolution: {integrity: sha512-JSV09l3bF9evCTUM2/e1sLkJy3+6Fvf9lwbmqCTjc0y+tL5maVp154ido6okyfxXNYurEWwH2ouatUOD25RYxQ==}
+  '@ogcio/design-system-react@1.17.1':
+    resolution: {integrity: sha512-BqY1ko0Qen0/ycEg9ILAR8R6HTz4Q8HNW9L3pLjEuES+pbB8WU5O8j9xDbWbmhEBopNUpussdK2Gbkp0VInLow==}
     peerDependencies:
       react: '*'
       react-dom: '*'
@@ -2645,7 +2645,7 @@ snapshots:
       openapi-fetch: 0.14.0
       openapi-typescript-helpers: 0.0.15
 
-  '@ogcio/design-system-react@1.16.0(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.46.3)':
+  '@ogcio/design-system-react@1.17.1(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.46.3)':
     dependencies:
       '@popperjs/core': 2.11.8
       '@radix-ui/react-slot': 1.2.3(@types/react@18.3.23)(react@18.3.1)
