@@ -1,6 +1,11 @@
 "use client"
 
 import {
+  ConsentProvider,
+  type ConsentStatuses,
+  useConsent,
+} from "@ogcio/consent"
+import {
   Button,
   Caption,
   Card,
@@ -19,12 +24,7 @@ import {
   TableHeader,
   TableRow,
   Tag,
-} from "@govie-ds/react"
-import {
-  ConsentProvider,
-  type ConsentStatuses,
-  useConsent,
-} from "@ogcio/consent"
+} from "@ogcio/design-system-react"
 import { useEffect, useState } from "react"
 import { ApiCallsCard } from "@/components/ApiCallsCard"
 import { ConsoleLogsCard } from "@/components/ConsoleLogsCard"
@@ -299,7 +299,7 @@ function AnalyticsContent({
 export default function AnalyticsPage() {
   const [consentStatus, setConsentStatus] = useState<string>("undefined")
   const [userConsentVersion, setUserConsentVersion] = useState<
-    string | undefined
+    number | undefined
   >()
   const [analyticsEvents, setAnalyticsEvents] = useState<AnalyticsEvent[]>([])
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([])
@@ -352,7 +352,7 @@ export default function AnalyticsPage() {
 
       setConsentStatus(accepted ? "opted-in" : "opted-out")
       // Always set the version that was consented to (accept or decline)
-      setUserConsentVersion(analyticsConfig.content.version.id)
+      setUserConsentVersion(analyticsConfig.content?.version)
 
       // Close modal using global function
       if (typeof window !== "undefined") {

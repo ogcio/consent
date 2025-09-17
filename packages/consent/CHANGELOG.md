@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.3](https://github.com/ogcio/consent/compare/@ogcio/consent-v0.1.2...@ogcio/consent-v0.1.3) (2025-09-11)
+
+
+### Features
+
+* correct design system packages fix scroll issue on modal open ([440ee0b](https://github.com/ogcio/consent/commit/440ee0bcf32dfc5c7b0e1ec582e05fa3fb927740))
+
+
+### Miscellaneous Chores
+
+* fix comment ([26fa6e6](https://github.com/ogcio/consent/commit/26fa6e644804336b0cdd868ee2b39b0e6b752b2b))
+
 ## [0.1.2](https://github.com/ogcio/consent/compare/@ogcio/consent-v0.1.1...@ogcio/consent-v0.1.2) (2025-08-22)
 
 

@@ -1,9 +1,9 @@
-import { Tag } from "@govie-ds/react"
 import { ConsentStatuses } from "@ogcio/consent"
+import { Tag } from "@ogcio/design-system-react"
 
 interface ConsentInfo {
   status: string
-  version?: string
+  version?: number
 }
 
 interface UserInfo {
@@ -47,7 +47,7 @@ export default function ConsentStatusCard({
         {consentInfo?.version && (
           <div>
             <span className='text-gray-600'>Version: </span>
-            <Tag text={consentInfo.version} type='default' />
+            <Tag text={consentInfo.version.toString()} type='default' />
           </div>
         )}
       </div>

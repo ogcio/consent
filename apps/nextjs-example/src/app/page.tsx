@@ -10,7 +10,7 @@ import {
   Heading,
   Link,
   Paragraph,
-} from "@govie-ds/react"
+} from "@ogcio/design-system-react"
 import { useConsent } from "@ogcio/consent"
 
 export default function HomePage() {

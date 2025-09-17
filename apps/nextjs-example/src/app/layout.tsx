@@ -1,10 +1,16 @@
 import "./globals.css"
-import { Container, Footer, Header, Link, Stack } from "@govie-ds/react"
+import {
+  Container,
+  Footer,
+  Header,
+  Link,
+  Stack,
+} from "@ogcio/design-system-react"
 import type { Metadata } from "next"
 import { ConsentWrapper } from "@/components/ConsentWrapper"
 import LayoutConsentStatus from "@/components/LayoutConsentStatus"
-import "@govie-ds/theme-govie/theme.css"
-import "@govie-ds/react/styles.css"
+import "@ogcio/theme-govie/theme.css"
+import "@ogcio/design-system-react/styles.css"
 
 export const metadata: Metadata = {
   title: "@ogcio/consent - Next.js Example",
