@@ -3,15 +3,48 @@
 import { ConsentStatuses } from "@/constants"
 import type {
   BuildingBlocksClients,
+  BuildingBlocksConsentResponse,
+  BuildingBlocksConsentStatementResponse,
+  BuildingBlocksConsentsListResponse,
+  BuildingBlocksError,
   ConsentResult,
   ConsentStatementContent,
   ConsentStatementLanguages,
   Logger,
+  StandardError,
 } from "@/types"
-import {
-  createFallbackContent,
-  transformBackendResponse,
-} from "@/utils/transformers"
+import { transformBackendResponse } from "@/utils/transformers"
+
+/**
+ * Helper function to normalize Building Blocks SDK errors to standard format
+ */
+const normalizeError = (
+  error: BuildingBlocksError,
+  subject?: string,
+): StandardError => {
+  // Handle the errors array case
+  if ("errors" in error) {
+    const subjectErrors = error.errors
+      .filter((err) => err.subject === subject)
+      .flatMap((err) => err.errors)
+
+    if (subjectErrors.length > 0) {
+      return { error: { detail: subjectErrors.join(", ") } }
+    }
+
+    // Fallback to all errors if no subject match
+    const allErrors = error.errors.flatMap((err) => err.errors)
+    return { error: { detail: allErrors.join(", ") } }
+  }
+
+  // Handle the detail case
+  if ("detail" in error) {
+    return { error: { detail: error.detail } }
+  }
+
+  // Fallback
+  return { error: { detail: "Unknown error" } }
+}
 
 /**
  * Generic server action to submit consent
@@ -29,14 +62,18 @@ export const submitConsent = async ({
   clients: BuildingBlocksClients
   onSuccess?: (accepted: boolean) => void | Promise<void>
 }): Promise<ConsentResult> => {
-  const profile = await clients.profileClient.submitConsent({
-    status: accept ? ConsentStatuses.OptedIn : ConsentStatuses.OptedOut,
-    subject,
-    consentStatementId,
+  const response = await clients.profileClient.submitConsent({
+    consents: [
+      {
+        subject,
+        status: accept ? ConsentStatuses.OptedIn : ConsentStatuses.OptedOut,
+        consentStatementId,
+      },
+    ],
   })
 
-  if (profile?.error) {
-    return { error: profile.error }
+  if (response?.error) {
+    return normalizeError(response.error, subject)
   }
 
   // Call the optional success callback
@@ -59,17 +96,86 @@ export const setConsentToPending = async ({
   consentStatementId: string
   clients: BuildingBlocksClients
 }): Promise<ConsentResult> => {
-  const profile = await clients.profileClient.submitConsent({
-    status: ConsentStatuses.Pending,
-    subject,
-    consentStatementId,
+  const response = await clients.profileClient.submitConsent({
+    consents: [
+      {
+        subject,
+        status: ConsentStatuses.Pending,
+        consentStatementId,
+      },
+    ],
   })
 
-  if (profile?.error) {
-    return { error: profile.error }
+  if (response?.error) {
+    return normalizeError(response.error, subject)
   }
 
   return {}
+}
+
+/**
+ * Generic server action to get the latest consent for a subject
+ */
+export const getLatestConsent = async ({
+  subject,
+  clients,
+}: {
+  subject: string
+  clients: BuildingBlocksClients
+}): Promise<StandardError | { data: BuildingBlocksConsentResponse }> => {
+  const response = await clients.profileClient.getLatestConsent({
+    subject,
+  })
+
+  if (response.error) {
+    return normalizeError(response.error, subject)
+  }
+
+  return { data: response.data as BuildingBlocksConsentResponse }
+}
+
+/**
+ * Generic server action to list consents for a subject
+ */
+export const listConsents = async ({
+  subject,
+  clients,
+}: {
+  subject?: string
+  clients: BuildingBlocksClients
+}): Promise<StandardError | { data: BuildingBlocksConsentsListResponse }> => {
+  const response = await clients.profileClient.listConsents({
+    subject: subject || "",
+  })
+
+  if (response.error) {
+    return normalizeError(response.error, subject)
+  }
+
+  return { data: response.data as BuildingBlocksConsentsListResponse }
+}
+
+/**
+ * Generic server action to get a specific consent statement by ID
+ */
+export const getConsentStatement = async ({
+  id,
+  clients,
+}: {
+  id: string
+  clients: BuildingBlocksClients
+}): Promise<
+  StandardError | { data: BuildingBlocksConsentStatementResponse }
+> => {
+  const response = await clients.profileClient.getConsentStatement(id)
+
+  if (response.error) {
+    return normalizeError(response.error)
+  }
+
+  return {
+    data: response.data as unknown as BuildingBlocksConsentStatementResponse,
+  }
 }
 
 /**
@@ -111,35 +217,31 @@ export const getIsConsentEnabled = async ({
 /**
  * Generic server action to fetch consent content from the API
  */
-export const getConsentStatementContent = async ({
+export const getCurrentConsentStatement = async ({
   subject,
   locale = "en",
-  isConsentEnabled = false,
   clients,
-  fallbackContent,
 }: {
   subject: string
   locale?: ConsentStatementLanguages
-  isConsentEnabled?: boolean
   clients: BuildingBlocksClients
-  fallbackContent?: ConsentStatementContent
 }): Promise<ConsentStatementContent> => {
-  if (!isConsentEnabled) {
-    return fallbackContent || createFallbackContent(locale)
-  }
-
   try {
-    const response = await clients.profileClient.getLatestConsentStatement({
+    const response = await clients.profileClient.getCurrentConsentStatement({
       subject,
     })
-    if (response.error || !response.data) {
-      return fallbackContent || createFallbackContent(locale)
+    if (
+      response.error ||
+      !response.data ||
+      !Array.isArray(response.data) ||
+      response.data.length === 0
+    ) {
+      throw new Error("Invalid consent statement response")
     }
-    // Use the transformation function to convert backend response to frontend format
-    return await transformBackendResponse(response.data.data, locale)
+
+    return await transformBackendResponse(response.data[0], locale)
   } catch (error) {
     console.error("Error fetching consent content:", error)
-    // Return fallback content if API fails
-    return fallbackContent || createFallbackContent(locale)
+    throw new Error("Error fetching consent content")
   }
 }
