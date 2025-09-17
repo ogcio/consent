@@ -4,20 +4,23 @@ import {
   Alert,
   Button,
   Link,
-  List,
   ModalBody,
-  ModalFooter,
   ModalTitle,
   ModalWrapper,
   Paragraph,
   Spinner,
   Stack,
   toaster,
-} from "@govie-ds/react"
-import { useEffect, useRef, useState } from "react"
-import type { ConsentAction } from "@/types"
+} from "@ogcio/design-system-react"
+import { useEffect, useId, useRef, useState } from "react"
+import Markdown from "react-markdown"
+import rehypeRaw from "rehype-raw"
+import rehypeSanitize from "rehype-sanitize"
+import remarkGfm from "remark-gfm"
+import type { ConsentAction, ConsentStatementLanguages } from "@/types"
 import { CONSENT_ACTIONS } from "@/types"
 import { useConsent } from "./ConsentProvider"
+import { LanguageSwitcher } from "./LanguageSwitcher"
 
 export const ConsentModal = () => {
   const {
@@ -35,13 +38,35 @@ export const ConsentModal = () => {
   const isGlobalLoading = isLoading.accept || isLoading.decline
   const [error, setError] = useState<string | null>(null)
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false)
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const [hasSetBottomRef, setHasBottomRef] = useState(false)
+  const bottomRef = useRef<HTMLDivElement | null>(null)
+  const titleId = useId()
 
   const { content, analyticsTracker, api } = config
   const preferredLanguage = config.userContext.getPreferredLanguage(userContext)
 
+  // Extract current language from URL path
+  const getCurrentLanguageFromUrl = (): ConsentStatementLanguages => {
+    const currentPath = window.location.pathname
+    const urlPattern = /\/(en|ga)\//
+    const match = currentPath.match(urlPattern)
+    return (match?.[1] as ConsentStatementLanguages) || "en"
+  }
+
+  const currentLanguage = getCurrentLanguageFromUrl()
+
+  // Language switcher translations with fallback defaults
+  const languageTranslations = config.languageSwitcher?.translations || {
+    english: "English",
+    irish: "Gaeilge",
+  }
+
   // Set up intersection observer to track when user scrolls to bottom
   useEffect(() => {
+    if (!hasSetBottomRef) {
+      return
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries
@@ -54,7 +79,6 @@ export const ConsentModal = () => {
         threshold: 0.1, // Trigger when 10% of the element is visible
       },
     )
-
     if (bottomRef.current) {
       observer.observe(bottomRef.current)
     }
@@ -64,7 +88,21 @@ export const ConsentModal = () => {
         observer.unobserve(bottomRef.current)
       }
     }
-  }, [events])
+  }, [events, hasSetBottomRef])
+
+  // Scroll modal content to top on open to encourage users to review consent before acting.
+  useEffect(() => {
+    if (isConsentModalOpen) {
+      const body = document.querySelector("#content-stack")?.parentElement
+      if (body) {
+        body.scrollTop = 0
+      }
+    }
+  }, [isConsentModalOpen])
+
+  if (!content) {
+    return null
+  }
 
   const doHandleConsent = async (accept: boolean) => {
     setError(null)
@@ -81,12 +119,13 @@ export const ConsentModal = () => {
     analyticsTracker?.trackConsentDecision(action)
 
     try {
-      const apiInstance = api(config.content.version.id)
+      // The API function expects (version, consentStatementId) and returns an API instance
+      const apiInstance = api(content.version, content.id)
       const result = await apiInstance.submitConsent({
         accept,
         subject: config.subject,
         preferredLanguage,
-        versionId: config.content.version.id,
+        versionId: content.version,
       })
 
       setIsLoading({
@@ -138,39 +177,9 @@ export const ConsentModal = () => {
     }
   }
 
-  const renderTextWithLinks = (text: string) => {
-    // Replace <tc>...</tc> and <pp>...</pp> with actual links
-    let processedText = text
-
-    // Replace link placeholders with actual links
-    Object.entries(content.links).forEach(([key, url]) => {
-      // Use regex to match the tag and extract the actual content between tags
-      const tagRegex = new RegExp(`<${key}>(.*?)</${key}>`, "g")
-
-      processedText = processedText.replace(tagRegex, (_match, linkText) => {
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`
-      })
-    })
-
-    // Split by HTML tags and render
-    const parts = processedText.split(/(<a[^>]*>.*?<\/a>)/g)
-    return parts.map((part, partIndex) => {
-      const linkMatch = part.match(/<a href="([^"]*)"[^>]*>(.*?)<\/a>/)
-
-      if (linkMatch) {
-        return (
-          <Link
-            key={`link-${partIndex}-${linkMatch[1]}`}
-            href={linkMatch[1]}
-            target='_blank'
-            rel='noopener noreferrer'
-          >
-            {linkMatch[2]}
-          </Link>
-        )
-      }
-      return <span key={`text-${partIndex}-${part}`}>{part}</span>
-    })
+  const setBottomRef = (el: HTMLDivElement | null) => {
+    bottomRef.current = el
+    setHasBottomRef(true)
   }
 
   return (
@@ -179,12 +188,13 @@ export const ConsentModal = () => {
       isOpen={isConsentModalOpen}
       closeOnClick={false}
       closeOnOverlayClick={false}
+      aria-describedby={titleId}
       onClose={() => {
         setIsConsentModalOpen(false)
         events?.onModalClose?.()
       }}
     >
-      <ModalTitle>{content.title}</ModalTitle>
+      <ModalTitle id={titleId}>{content.title}</ModalTitle>
       <ModalBody>
         {/* Note: if we put this in the stack it will loose full-width */}
         {error && (
@@ -194,66 +204,84 @@ export const ConsentModal = () => {
             </Alert>
           </div>
         )}
-        <Stack direction='column' gap={4}>
-          {content.bodyParagraphs.map(
-            (paragraph: string, paragraphIndex: number) => (
-              <Paragraph
-                key={`paragraph-${paragraphIndex}-${paragraph.substring(0, 20)}`}
+        <Stack direction='column' gap={4} id={`content-stack`}>
+          {content.description && (
+            <Paragraph>
+              <Markdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeRaw, rehypeSanitize]}
               >
-                {paragraph}
-              </Paragraph>
-            ),
-          )}
-          {content.listItems.length > 0 && (
-            <List
-              type='bullet'
-              items={content.listItems}
-              data-testid='consent-list'
-            />
+                {content.description}
+              </Markdown>
+            </Paragraph>
           )}
 
-          {content.bodyBottom && content.bodyBottom.length > 0 && (
-            <Paragraph>{content.bodyBottom.join(" ")}</Paragraph>
+          {content.disclaimer && (
+            <Alert title={content.disclaimer} variant='info' />
           )}
 
-          {content.infoAlert && (
-            <Alert variant='info' title={content.infoAlert.title}>
-              <List
-                className='gi-text-sm'
-                items={content.infoAlert.items}
-                data-testid='info-alert-list'
-              />
-            </Alert>
+          {content.links && (
+            <Stack direction='row' gap={4}>
+              <Link
+                key={`link-${content.links.privacyPolicy}`}
+                href={content.links.privacyPolicy.url}
+                target='_blank'
+                rel='noopener noreferrer'
+              >
+                {content.links.privacyPolicy.text}
+              </Link>
+              <Link
+                key={`link-${content.links.termsAndConditions}`}
+                href={content.links.termsAndConditions.url}
+                target='_blank'
+                rel='noopener noreferrer'
+              >
+                {content.links.termsAndConditions.text}
+              </Link>
+            </Stack>
           )}
-          <Paragraph style={{ maxWidth: "unset" }} size='sm'>
-            {renderTextWithLinks(content.footerText)}
-          </Paragraph>
           {/* Invisible element to detect scroll to bottom */}
-          <div ref={bottomRef} style={{ height: "1px" }} />
+          <div ref={setBottomRef} style={{ height: "1px" }} />
         </Stack>
       </ModalBody>
-      <ModalFooter>
-        <Button
-          key='decline-button'
-          variant='secondary'
-          disabled={isGlobalLoading || !hasScrolledToBottom}
-          onClick={() => doHandleConsent(false)}
-          data-testid='consent-decline-button'
+      <div className='gi-modal-footer'>
+        <Stack
+          direction='row'
+          gap={4}
+          itemsDistribution='between'
+          itemsAlignment='center'
         >
-          {content.buttons.decline}
-          {isLoading.decline && <Spinner key='decline-spinner' />}
-        </Button>
-        <Button
-          key='accept-button'
-          variant='primary'
-          disabled={isGlobalLoading || !hasScrolledToBottom}
-          onClick={() => doHandleConsent(true)}
-          data-testid='consent-accept-button'
-        >
-          {content.buttons.accept}
-          {isLoading.accept && <Spinner key='accept-spinner' />}
-        </Button>
-      </ModalFooter>
+          <LanguageSwitcher
+            currentLanguage={currentLanguage}
+            translations={languageTranslations}
+            forceModalParam={config.forceModalParam}
+          />
+
+          {/* Buttons on the right */}
+          <Stack direction='row' gap={4} itemsDistribution='end'>
+            <Button
+              key='decline-button'
+              variant='secondary'
+              disabled={isGlobalLoading || !hasScrolledToBottom}
+              onClick={() => doHandleConsent(false)}
+              data-testid='consent-decline-button'
+            >
+              {content.buttons.decline}
+              {isLoading.decline && <Spinner key='decline-spinner' />}
+            </Button>
+            <Button
+              key='accept-button'
+              variant='primary'
+              disabled={isGlobalLoading || !hasScrolledToBottom}
+              onClick={() => doHandleConsent(true)}
+              data-testid='consent-accept-button'
+            >
+              {content.buttons.accept}
+              {isLoading.accept && <Spinner key='accept-spinner' />}
+            </Button>
+          </Stack>
+        </Stack>
+      </div>
     </ModalWrapper>
   )
 }
