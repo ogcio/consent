@@ -65,7 +65,12 @@
   },
   "dependencies": {
     "@ogcio/design-system-react": "1.17.1",
-    "@ogcio/theme-govie": "1.7.0"
+    "@ogcio/theme-govie": "1.7.0",
+    "@ogcio/building-blocks-sdk": "^0.2.55",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "rehype-raw": "^7.0.0",
+    "rehype-sanitize": "^6.0.0"
   },
   "devDependencies": {
     "@ogcio/nextjs-analytics": "^1.0.0",

@@ -4,7 +4,6 @@ import {
   type ConsentStatementData,
   type ConsentStatementLanguages,
   ConsentStatuses,
-  DEFAULT_CONSENT_CONTENT,
 } from "@/types"
 
 // Type for testing with invalid locales
@@ -16,18 +15,36 @@ type TestTransformBackendResponse = (
   locale: TestLocale,
 ) => Promise<ConsentStatementContent>
 
-type TestCreateFallbackContent = (locale: TestLocale) => ConsentStatementContent
-
 import {
   createAnalyticsTracker,
   createConsentAnalyticsEvent,
   createNoOpAnalyticsTracker,
 } from "@/utils/analytics"
 import { createDefaultConsentConfig } from "@/utils/config"
-import {
-  createFallbackContent,
-  transformBackendResponse,
-} from "@/utils/transformers"
+import { transformBackendResponse } from "@/utils/transformers"
+
+// Mock default consent content for testing
+const DEFAULT_CONSENT_CONTENT: ConsentStatementContent = {
+  id: "test-id",
+  version: 1,
+  publishDate: "2023-01-01T00:00:00Z",
+  isEnabled: true,
+  title: "Test Consent",
+  description: "Test description",
+  disclaimer: "Test disclaimer",
+  buttons: {
+    accept: "Accept",
+    decline: "Decline",
+  },
+  success: {
+    title: "Success",
+    message: "Success message",
+  },
+  error: {
+    title: "Error",
+    message: "Error message",
+  },
+}
 
 describe("Config Utils", () => {
   describe("createDefaultConsentConfig", () => {
@@ -59,6 +76,27 @@ describe("Config Utils", () => {
       expect(config.forceModalParam).toBe("custom-param")
     })
 
+    it("creates a config with custom links", () => {
+      const customLinks = {
+        termsAndConditions: {
+          url: "https://example.com/terms",
+          text: "Terms and Conditions",
+        },
+        privacyPolicy: {
+          url: "https://example.com/privacy",
+          text: "Privacy Policy",
+        },
+      }
+
+      const config = createDefaultConsentConfig({
+        subject: "test-subject",
+        content: DEFAULT_CONSENT_CONTENT,
+        links: customLinks,
+      })
+
+      expect(config.content?.links).toEqual(customLinks)
+    })
+
     it("shouldShowModal returns false for public servants", () => {
       const config = createDefaultConsentConfig({
         subject: "test-subject",
@@ -69,7 +107,8 @@ describe("Config Utils", () => {
         userContext: { isPublicServant: true, preferredLanguage: "en" },
         consentStatus: ConsentStatuses.Undefined,
         searchParams: new URLSearchParams(),
-        latestConsentVersion: "latest",
+        latestConsentVersion: 1,
+        latestConsentStatementId: "test-id",
       })
 
       expect(result).toBe(false)
@@ -85,7 +124,8 @@ describe("Config Utils", () => {
         userContext: { isPublicServant: false, preferredLanguage: "en" },
         consentStatus: ConsentStatuses.Undefined,
         searchParams: new URLSearchParams(),
-        latestConsentVersion: "latest",
+        latestConsentVersion: 1,
+        latestConsentStatementId: "test-id",
       })
 
       expect(result).toBe(true)
@@ -101,31 +141,26 @@ describe("Transformers", () => {
         subject: "test-subject",
         version: 1,
         createdAt: "2023-01-01T00:00:00Z",
+        publishDate: "2023-01-01T00:00:00Z",
+        isEnabled: true,
+        createdBy: "test-user",
         translations: {
           en: {
             id: "translation-id",
             consentStatementId: "test-id",
-            language: "en",
+            language: "en" as const,
             title: "Test Title",
-            bodyTop: ["Paragraph 1", "Paragraph 2"],
-            bodyList: ["Item 1", "Item 2"],
-            bodyBottom: ["Bottom text"],
-            bodySmall: ["Small item 1", "Small item 2"],
-            bodyFooter: "Footer text with <tc>Terms</tc>",
-            bodyLinks: { tc: "https://terms.com", pp: "https://privacy.com" },
+            description: "Test description content",
+            disclaimer: "Test disclaimer with <tc>Terms</tc>",
             createdAt: "2023-01-01T00:00:00Z",
           },
           ga: {
             id: "ga-translation-id",
             consentStatementId: "test-id",
-            language: "ga",
+            language: "ga" as const,
             title: "Test Title GA",
-            bodyTop: ["Paragraph 1 GA", "Paragraph 2 GA"],
-            bodyList: ["Item 1 GA", "Item 2 GA"],
-            bodyBottom: ["Bottom text GA"],
-            bodySmall: ["Small item 1 GA", "Small item 2 GA"],
-            bodyFooter: "Footer text GA with <tc>Terms</tc>",
-            bodyLinks: { tc: "https://terms.com", pp: "https://privacy.com" },
+            description: "Test description content GA",
+            disclaimer: "Test disclaimer GA with <tc>Terms</tc>",
             createdAt: "2023-01-01T00:00:00Z",
           },
         },
@@ -133,14 +168,12 @@ describe("Transformers", () => {
 
       const result = await transformBackendResponse(backendData, "en")
 
-      expect(result.version.id).toBe("test-id")
+      expect(result.id).toBe("test-id")
+      expect(result.version).toBe(1)
       expect(result.title).toBe("Test Title")
-      expect(result.bodyParagraphs).toEqual(["Paragraph 1", "Paragraph 2"])
-      expect(result.listItems).toEqual(["Item 1", "Item 2"])
-      expect(result.links).toEqual({
-        tc: "https://terms.com",
-        pp: "https://privacy.com",
-      })
+      expect(result.description).toBe("Test description content")
+      expect(result.disclaimer).toBe("Test disclaimer with <tc>Terms</tc>")
+      expect(result.links).toBeUndefined()
     })
 
     it("throws error for missing translation", async () => {
@@ -149,31 +182,26 @@ describe("Transformers", () => {
         subject: "test-subject",
         version: 1,
         createdAt: "2023-01-01T00:00:00Z",
+        publishDate: "2023-01-01T00:00:00Z",
+        isEnabled: true,
+        createdBy: "test-user",
         translations: {
           en: {
             id: "en-translation",
             consentStatementId: "test-id",
-            language: "en",
+            language: "en" as const,
             title: "Test Title",
-            bodyTop: ["Paragraph 1"],
-            bodyList: ["Item 1"],
-            bodyBottom: ["Bottom text"],
-            bodySmall: ["Small item 1"],
-            bodyFooter: "Footer text",
-            bodyLinks: { tc: "https://terms.com", pp: "https://privacy.com" },
+            description: "Test description",
+            disclaimer: "Test disclaimer",
             createdAt: "2023-01-01T00:00:00Z",
           },
           ga: {
             id: "ga-translation",
             consentStatementId: "test-id",
-            language: "ga",
+            language: "ga" as const,
             title: "Test Title GA",
-            bodyTop: ["Paragraph 1 GA"],
-            bodyList: ["Item 1 GA"],
-            bodyBottom: ["Bottom text GA"],
-            bodySmall: ["Small item 1 GA"],
-            bodyFooter: "Footer text GA",
-            bodyLinks: { tc: "https://terms.com", pp: "https://privacy.com" },
+            description: "Test description GA",
+            disclaimer: "Test disclaimer GA",
             createdAt: "2023-01-01T00:00:00Z",
           },
         },
@@ -185,31 +213,6 @@ describe("Transformers", () => {
           "fr",
         ),
       ).rejects.toThrow("Translation not found for locale: fr")
-    })
-  })
-
-  describe("createFallbackContent", () => {
-    it("creates fallback content for English", () => {
-      const content = createFallbackContent("en")
-
-      expect(content.title).toBe("Welcome to Our Service")
-      expect(content.bodyParagraphs).toHaveLength(2)
-      expect(content.listItems).toHaveLength(2)
-      expect(content.links).toEqual({ tc: "#", pp: "#" })
-    })
-
-    it("creates fallback content for Irish", () => {
-      const content = createFallbackContent("ga")
-
-      expect(content.title).toBe("Fáilte go dtí ár Seirbhís")
-      expect(content.bodyParagraphs).toHaveLength(2)
-      expect(content.listItems).toHaveLength(2)
-    })
-
-    it("falls back to English for unknown locale", () => {
-      const content = (createFallbackContent as TestCreateFallbackContent)("fr")
-
-      expect(content.title).toBe("Welcome to Our Service")
     })
   })
 })

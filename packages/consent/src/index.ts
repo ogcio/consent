@@ -3,6 +3,7 @@
 
 export { ConsentModal } from "./components/ConsentModal"
 export { ConsentProvider, useConsent } from "./components/ConsentProvider"
+export { LanguageSwitcher } from "./components/LanguageSwitcher"
 export * from "./types"
 export {
   createAnalyticsTracker,

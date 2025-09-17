@@ -7,32 +7,23 @@ import {
 
 // Sample consent content for the demo application
 export const demoConsentContent: ConsentStatementContent = {
+  id: "demo-app-consent-v1",
+  version: 1,
+  publishDate: new Date("2024-01-15T10:00:00Z").toISOString(),
+  isEnabled: true,
   title: "Welcome to Our Demo Application",
-  bodyParagraphs: [
-    "This demo application showcases the @ogcio/consent package functionality.",
-    "Before you start using our application, we need your consent for the following:",
-  ],
-  listItems: [
-    "To provide you with a personalized experience",
-    "To analyze how you use our application to improve our services",
-    "To send you notifications about important updates",
-    "To ensure the security and proper functioning of our application",
-  ],
-  bodyBottom: [
-    "You can withdraw your consent at any time through your account settings.",
-    "Without your consent, some features may not be available.",
-  ],
-  infoAlert: {
-    title: "What this means for you:",
-    items: [
-      "Your data will be processed securely and in accordance with GDPR",
-      "You maintain full control over your privacy settings",
-      "We will never sell your data to third parties",
-      "You can request deletion of your data at any time",
-    ],
-  },
-  footerText:
-    "By accepting, you agree to our <tc>Terms and Conditions</tc> and <pp>Privacy Policy</pp>.",
+  description: `This demo application showcases the @ogcio/consent package functionality.
+
+Before you start using our application, we need your consent for the following:
+
+• To provide you with a personalized experience
+• To analyze how you use our application to improve our services  
+• To send you notifications about important updates
+• To ensure the security and proper functioning of our application
+
+You can withdraw your consent at any time through your account settings. Without your consent, some features may not be available.`,
+  disclaimer:
+    "By accepting, you agree to our Terms and Conditions and Privacy Policy.",
   buttons: {
     accept: "Accept All",
     decline: "Decline",
@@ -47,28 +38,31 @@ export const demoConsentContent: ConsentStatementContent = {
       "We encountered an error while saving your consent preferences. Please try again.",
   },
   links: {
-    tc: "/terms-and-conditions",
-    pp: "/privacy-policy",
-  },
-  version: {
-    id: "v1.2.0",
-    createdAt: new Date("2024-01-15T10:00:00Z").toISOString(),
+    privacyPolicy: {
+      url: "/privacy-policy",
+      text: "Privacy Policy",
+    },
+    termsAndConditions: {
+      url: "/terms-and-conditions",
+      text: "Terms and Conditions",
+    },
   },
 }
 
 // Analytics consent content
 export const analyticsConsentContent: ConsentStatementContent = {
+  id: "analytics-consent-v1",
+  version: 1,
+  publishDate: new Date("2024-01-10T10:00:00Z").toISOString(),
+  isEnabled: true,
   title: "Analytics & Performance",
-  bodyParagraphs: [
-    "Help us improve our application by allowing us to collect anonymous usage data.",
-  ],
-  listItems: [
-    "Track page views and user interactions",
-    "Monitor application performance",
-    "Identify and fix issues",
-    "Understand which features are most useful",
-  ],
-  footerText:
+  description: `Help us improve our application by allowing us to collect anonymous usage data.
+
+• Track page views and user interactions
+• Monitor application performance
+• Identify and fix issues
+• Understand which features are most useful`,
+  disclaimer:
     "This data is completely anonymous and helps us make the application better for everyone.",
   buttons: {
     accept: "Allow Analytics",
@@ -83,12 +77,14 @@ export const analyticsConsentContent: ConsentStatementContent = {
     message: "Unable to save your analytics preferences. Please try again.",
   },
   links: {
-    tc: "/terms-and-conditions",
-    pp: "/privacy-policy",
-  },
-  version: {
-    id: "v1.0.0",
-    createdAt: new Date("2024-01-10T10:00:00Z").toISOString(),
+    privacyPolicy: {
+      url: "/privacy-policy",
+      text: "Privacy Policy",
+    },
+    termsAndConditions: {
+      url: "/terms-and-conditions",
+      text: "Terms and Conditions",
+    },
   },
 }
 
@@ -103,8 +99,9 @@ export function createDemoConsentConfig(isEnabled: boolean = true) {
   })
 
   // Override API implementation with our demo endpoints
-  config.api = (latestConsentVersion) => ({
-    consentStatementId: latestConsentVersion,
+  config.api = (latestConsentVersion, consentStatementId) => ({
+    consentStatementId,
+    version: latestConsentVersion,
     submitConsent: async ({
       accept,
       subject,
@@ -182,8 +179,9 @@ export function createAnalyticsConsentConfig() {
     showToastOnSuccess: true,
   })
 
-  config.api = (latestConsentVersion) => ({
-    consentStatementId: latestConsentVersion,
+  config.api = (latestConsentVersion, consentStatementId) => ({
+    consentStatementId,
+    version: latestConsentVersion,
     submitConsent: async ({
       accept,
       subject,
@@ -244,7 +242,7 @@ export const mockUser = {
 // Simulate fetching consent status (in a real app, this would be server-side)
 export async function fetchConsentStatus(subject: string): Promise<{
   consentStatus: ConsentStatus
-  userConsentVersion?: string
+  userConsentVersion?: number
 }> {
   try {
     const response = await fetch(
@@ -259,7 +257,9 @@ export async function fetchConsentStatus(subject: string): Promise<{
     const data = await response.json()
     return {
       consentStatus: data.consentStatus as ConsentStatus,
-      userConsentVersion: data.userConsentVersion,
+      userConsentVersion: data.userConsentVersion
+        ? parseInt(data.userConsentVersion, 10)
+        : undefined,
     }
   } catch (error) {
     console.warn("Error fetching consent status:", error)

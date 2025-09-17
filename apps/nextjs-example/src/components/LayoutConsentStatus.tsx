@@ -1,7 +1,7 @@
 "use client"
 
-import { Alert } from "@ogcio/design-system-react"
 import { useConsent } from "@ogcio/consent"
+import { Alert } from "@ogcio/design-system-react"
 import { useCallback, useEffect, useState } from "react"
 import { fetchConsentStatus } from "@/lib/consent"
 import ConsentStatusCard from "./ConsentStatusCard"
@@ -23,7 +23,7 @@ export default function LayoutConsentStatus() {
   const { isOptedOut } = useConsent()
   const [consentInfo, setConsentInfo] = useState<{
     status: string
-    version?: string
+    version?: number
   } | null>(null)
   const [userInfo, setUserInfo] = useState<{
     isPublicServant: boolean
