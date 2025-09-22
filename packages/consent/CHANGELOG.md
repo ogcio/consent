@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/ogcio/consent/compare/@ogcio/consent-v0.1.4...@ogcio/consent-v0.1.5) (2025-09-22)
+
+
+### Features
+
+* remove toast provider ([#23](https://github.com/ogcio/consent/issues/23)) ([6bf899c](https://github.com/ogcio/consent/commit/6bf899cdec7e41cd1aa6473243941e60424ed8e9))
+
 ## [0.1.4](https://github.com/ogcio/consent/compare/@ogcio/consent-v0.1.3...@ogcio/consent-v0.1.4) (2025-09-22)
 
 
