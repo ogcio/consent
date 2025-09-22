@@ -5,6 +5,7 @@ import {
   Header,
   Link,
   Stack,
+  ToastProvider,
 } from "@ogcio/design-system-react"
 import type { Metadata } from "next"
 import { ConsentWrapper } from "@/components/ConsentWrapper"
@@ -31,6 +32,7 @@ export default function RootLayout({
           className='gi-flex gi-flex-col mb-12'
           style={{ minHeight: "100vh" }}
         >
+          <ToastProvider />
           <Header
             title='@ogcio/consent'
             showTitleOnMobile={true}
