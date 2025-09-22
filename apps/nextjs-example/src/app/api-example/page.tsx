@@ -10,28 +10,48 @@ import {
   Paragraph,
   Stack,
 } from "@ogcio/design-system-react"
-import { useState } from "react"
+import { useId, useRef, useState } from "react"
 import { ApiCallsCard } from "@/components/ApiCallsCard"
 import { ConsoleLogsCard } from "@/components/ConsoleLogsCard"
 import type { ApiCall, ConsoleLog } from "@/components/types"
-import { createApiCallTracker, createMakeApiCall } from "@/utils/apiUtils"
+import {
+  createApiCallTracker,
+  createConsoleLogger,
+  createMakeApiCall,
+} from "@/utils/apiUtils"
 
 export default function ApiExamplePage() {
   const [apiCalls, setApiCalls] = useState<ApiCall[]>([])
   const [isLoading, setIsLoading] = useState<string | null>(null)
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([])
 
+  // Generate unique IDs using React's useId hook
+  const baseId = useId()
+  const idCounterRef = useRef(0)
+  const generateId = () => `${baseId}-${++idCounterRef.current}`
+
   const clearLogs = () => {
     setConsoleLogs([])
   }
 
-  // Simple console log function for this page
-  const addConsoleLog = (message: string) => {
-    console.log(message)
+  // Function to trigger consent status refresh in layout banner
+  const triggerConsentStatusRefresh = () => {
+    // Dispatch event to notify layout components to refresh their consent status
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("consentChanged"))
+      addConsoleLog("🔄 Consent status refresh event dispatched")
+    }
   }
 
+  // Console log function using utility
+  const addConsoleLog = createConsoleLogger(setConsoleLogs, generateId)
+
   // API call tracking using utilities
-  const trackApiCall = createApiCallTracker(setApiCalls, addConsoleLog)
+  const trackApiCall = createApiCallTracker(
+    setApiCalls,
+    addConsoleLog,
+    generateId,
+  )
   const utilMakeApiCall = createMakeApiCall(trackApiCall)
 
   const makeApiCall = async (
@@ -39,11 +59,26 @@ export default function ApiExamplePage() {
     endpoint: string,
     body?: unknown,
   ) => {
-    const callId = `${method}-${endpoint}-${Date.now()}`
+    const callId = `${method}-${endpoint}-${generateId()}`
     setIsLoading(callId)
 
     try {
-      await utilMakeApiCall(method, endpoint, body)
+      const response = await utilMakeApiCall(method, endpoint, body)
+
+      // If this was a consent submission or pending request, trigger status refresh in layout banner
+      if (
+        (endpoint === "/api/consent/submit" ||
+          endpoint === "/api/consent/pending") &&
+        response.ok
+      ) {
+        addConsoleLog(`✅ ${endpoint} API call successful`)
+        setTimeout(() => triggerConsentStatusRefresh(), 500) // Small delay to ensure API has processed
+      } else if (
+        endpoint === "/api/consent/submit" ||
+        endpoint === "/api/consent/pending"
+      ) {
+        addConsoleLog(`❌ ${endpoint} API call failed`, "error")
+      }
     } catch {
       // Error already handled by utility function
     } finally {
@@ -83,7 +118,8 @@ export default function ApiExamplePage() {
                       accept: true,
                       subject: "demo-app",
                       preferredLanguage: "en",
-                      versionId: "v1.2.0",
+                      consentStatementId:
+                        "550e8400-e29b-41d4-a716-446655440001",
                     })
                   }
                   disabled={isLoading !== null}
@@ -102,7 +138,8 @@ export default function ApiExamplePage() {
                       accept: false,
                       subject: "demo-app",
                       preferredLanguage: "en",
-                      versionId: "v1.2.0",
+                      consentStatementId:
+                        "550e8400-e29b-41d4-a716-446655440001",
                     })
                   }
                   disabled={isLoading !== null}
@@ -119,6 +156,7 @@ export default function ApiExamplePage() {
                   onClick={() =>
                     makeApiCall("POST", "/api/consent/pending", {
                       subject: "demo-app",
+                      userId: "user-123",
                     })
                   }
                   disabled={isLoading !== null}
@@ -293,11 +331,11 @@ config.api = (latestConsentVersion) => ({
             <pre className='text-xs! bg-gray-800 text-green-400 p-4 rounded overflow-x-auto'>
               {`// Example Next.js API route
 export async function POST(request) {
-  const { accept, subject, preferredLanguage, versionId } = 
+  const { accept, subject, preferredLanguage, consentStatementId } = 
     await request.json()
   
   // Validate request
-  if (!subject || !preferredLanguage || !versionId) {
+  if (!subject || !preferredLanguage || !consentStatementId) {
     return NextResponse.json(
       { message: 'Missing required fields' },
       { status: 400 }
@@ -309,7 +347,7 @@ export async function POST(request) {
     userId: getCurrentUserId(),
     subject,
     accepted: accept,
-    versionId,
+    consentStatementId,
     language: preferredLanguage,
     timestamp: new Date(),
   })

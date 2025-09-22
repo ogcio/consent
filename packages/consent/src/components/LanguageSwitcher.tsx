@@ -1,6 +1,7 @@
 "use client"
 
 import { Link } from "@ogcio/design-system-react"
+import { useEffect, useState } from "react"
 import type { ConsentStatementLanguages } from "@/types"
 
 interface LanguageSwitcherProps {
@@ -20,9 +21,15 @@ export const LanguageSwitcher = ({
   const isEnglish = currentLanguage === "en"
   const targetLanguage: ConsentStatementLanguages = isEnglish ? "ga" : "en"
   const linkText = isEnglish ? translations.irish : translations.english
+  const [currentUrl, setCurrentUrl] = useState("")
+
+  useEffect(() => {
+    setCurrentUrl(window.location.href)
+  }, [])
 
   const switchLanguage = () => {
-    const currentUrl = window.location.href
+    if (!currentUrl) return
+
     let newUrl: string
 
     // Check if URL already has a language prefix

@@ -11,7 +11,7 @@ import {
   Paragraph,
   Stack,
 } from "@ogcio/design-system-react"
-import { useState } from "react"
+import { useId, useRef, useState } from "react"
 import { ApiCallsCard } from "@/components/ApiCallsCard"
 import { ConsoleLogsCard } from "@/components/ConsoleLogsCard"
 import type { ApiCall, ConsoleLog } from "@/components/types"
@@ -49,15 +49,24 @@ export default function ScenariosPage() {
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([])
   const [apiCalls, setApiCalls] = useState<ApiCall[]>([])
 
+  // Generate unique IDs using React's useId hook
+  const baseId = useId()
+  const idCounterRef = useRef(0)
+  const generateId = () => `${baseId}-${++idCounterRef.current}`
+
   // Add console log using utility
-  const addConsoleLog = createConsoleLogger(setConsoleLogs)
+  const addConsoleLog = createConsoleLogger(setConsoleLogs, generateId)
 
   const clearLogs = () => {
     setConsoleLogs([])
   }
 
   // API call tracking using utilities
-  const trackApiCall = createApiCallTracker(setApiCalls, addConsoleLog)
+  const trackApiCall = createApiCallTracker(
+    setApiCalls,
+    addConsoleLog,
+    generateId,
+  )
   const makeApiCall = createMakeApiCall(trackApiCall)
 
   const clearApiCalls = () => {
@@ -97,7 +106,7 @@ export default function ScenariosPage() {
       // Step 3: Wait a moment then automatically show the consent modal
       setTimeout(() => {
         addConsoleLog("🆕 New consent version detected - showing modal...")
-        setIsConsentModalOpen(true)
+        setIsConsentModalOpen(true, true)
         addConsoleLog("🎉 Version update simulation complete!")
         alert(
           "Version update simulation complete! The consent modal is now showing because a new version requires your consent. No page refresh needed!",
@@ -122,7 +131,9 @@ export default function ScenariosPage() {
       addConsoleLog("👨‍💼 Starting public servant mode simulation...")
 
       // Get current public servant status from mockUser
-      const currentStatus = window.__mockUser?.isPublicServant || false
+      const currentStatus =
+        (typeof window !== "undefined" && window.__mockUser?.isPublicServant) ||
+        false
       const newStatus = !currentStatus
 
       addConsoleLog(
@@ -203,7 +214,7 @@ export default function ScenariosPage() {
         accept: false,
         subject: config.subject,
         preferredLanguage: "en",
-        versionId: config.content?.version.toString(),
+        consentStatementId: config.content?.id,
       })
 
       if (!declineResponse.ok) {
@@ -295,7 +306,7 @@ export default function ScenariosPage() {
       // Step 4: Wait a moment then trigger the consent modal
       setTimeout(() => {
         addConsoleLog("📋 New user detected - showing consent modal...")
-        setIsConsentModalOpen(true)
+        setIsConsentModalOpen(true, true)
         addConsoleLog("🎉 New user experience simulation complete!")
         alert(
           "New user simulation complete! The consent modal should now appear as if you're a first-time visitor. Your previous consent decisions have been cleared and you're now a regular user.",
@@ -365,7 +376,7 @@ export default function ScenariosPage() {
     switch (scenario.action) {
       case "show":
         addConsoleLog("📖 Opening consent modal manually")
-        setIsConsentModalOpen(true)
+        setIsConsentModalOpen(true, true) // true for open, true for manual
         break
 
       case "simulate":

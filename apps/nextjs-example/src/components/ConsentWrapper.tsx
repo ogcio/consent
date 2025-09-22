@@ -36,6 +36,9 @@ export function ConsentWrapper({
   const [userConsentVersion, setUserConsentVersion] = useState<
     number | undefined
   >()
+  const [userConsentStatementId, setUserConsentStatementId] = useState<
+    string | undefined
+  >()
   const [isLoading, setIsLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState(mockUser)
 
@@ -43,10 +46,14 @@ export function ConsentWrapper({
   useEffect(() => {
     async function loadConsentStatus() {
       try {
-        const { consentStatus: status, userConsentVersion: version } =
-          await fetchConsentStatus("demo-app")
+        const {
+          consentStatus: status,
+          userConsentVersion: version,
+          userConsentStatementId: statementId,
+        } = await fetchConsentStatus("demo-app")
         setConsentStatus(status)
         setUserConsentVersion(version)
+        setUserConsentStatementId(statementId)
       } catch (error) {
         console.error("Failed to load consent status:", error)
         // Use default values on error
@@ -70,31 +77,55 @@ export function ConsentWrapper({
       }
     }
 
-    // Also sync with global window state
-    const syncUserContext = () => {
-      const globalUser = window.__mockUser
-      if (globalUser) {
-        setCurrentUser((prev) => ({ ...prev, ...globalUser }))
+    // Reload consent status when consent changes
+    const handleConsentChange = async () => {
+      console.log("🔄 Consent changed - reloading status...")
+      try {
+        const {
+          consentStatus: status,
+          userConsentVersion: version,
+          userConsentStatementId: statementId,
+        } = await fetchConsentStatus("demo-app")
+        setConsentStatus(status)
+        setUserConsentVersion(version)
+        setUserConsentStatementId(statementId)
+        console.log("✅ Consent status reloaded:", {
+          status,
+          version,
+          statementId,
+        })
+      } catch (error) {
+        console.error("❌ Failed to reload consent status:", error)
+      }
+
+      // Also sync with global window state
+      if (typeof window !== "undefined") {
+        const globalUser = window.__mockUser
+        if (globalUser) {
+          setCurrentUser((prev) => ({ ...prev, ...globalUser }))
+        }
       }
     }
 
-    window.addEventListener(
-      "userContextChanged",
-      handleUserContextChange as EventListener,
-    )
-    window.addEventListener("consentChanged", syncUserContext)
-
-    // Initialize global user state
     if (typeof window !== "undefined") {
+      window.addEventListener(
+        "userContextChanged",
+        handleUserContextChange as EventListener,
+      )
+      window.addEventListener("consentChanged", handleConsentChange)
+
+      // Initialize global user state
       window.__mockUser = currentUser
     }
 
     return () => {
-      window.removeEventListener(
-        "userContextChanged",
-        handleUserContextChange as EventListener,
-      )
-      window.removeEventListener("consentChanged", syncUserContext)
+      if (typeof window !== "undefined") {
+        window.removeEventListener(
+          "userContextChanged",
+          handleUserContextChange as EventListener,
+        )
+        window.removeEventListener("consentChanged", handleConsentChange)
+      }
     }
   }, [currentUser])
 
@@ -108,8 +139,9 @@ export function ConsentWrapper({
 
       // Update local state
       setConsentStatus(accepted ? "opted-in" : "opted-out")
-      // Always store the version that was consented to (accept or decline)
+      // Always store the version and statement ID that was consented to (accept or decline)
       setUserConsentVersion(consentConfig.content?.version)
+      setUserConsentStatementId(consentConfig.content?.id)
 
       // Dispatch custom event to notify other components
       if (typeof window !== "undefined") {
@@ -159,6 +191,7 @@ export function ConsentWrapper({
       }}
       consentStatus={consentStatus}
       userConsentVersion={userConsentVersion}
+      userConsentStatementId={userConsentStatementId}
       events={events}
     >
       {children}

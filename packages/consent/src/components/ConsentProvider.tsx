@@ -19,26 +19,34 @@ export const ConsentProvider: React.FC<ConsentProviderProps> = ({
   children,
 }) => {
   const [isConsentModalOpen, setIsConsentModalOpen] = useState(false)
+  const [isManuallyOpened, setIsManuallyOpened] = useState(false)
 
   // Check if user has opted out
   const isOptedOut = consentStatus === ConsentStatuses.OptedOut
 
   // Determine if modal should be shown
   useEffect(() => {
-    const shouldShow = config.shouldShowModal({
-      userContext,
-      consentStatus,
-      searchParams: new URLSearchParams(window.location.search),
-      userConsentVersion,
-      userConsentStatementId,
-      latestConsentVersion: config.content?.version ?? 0,
-      latestConsentStatementId: config.content?.id ?? "",
-    })
+    const checkShouldShowModal = () => {
+      const shouldShow = config.shouldShowModal({
+        userContext,
+        consentStatus,
+        searchParams: new URLSearchParams(window.location.search),
+        userConsentVersion,
+        userConsentStatementId,
+        latestConsentVersion: config.content?.version ?? 0,
+        latestConsentStatementId: config.content?.id ?? "",
+      })
 
-    if (shouldShow) {
-      setIsConsentModalOpen(true)
-      events?.onModalOpen?.()
+      if (shouldShow && !isConsentModalOpen) {
+        setIsConsentModalOpen(true)
+        events?.onModalOpen?.()
+      } else if (!shouldShow && isConsentModalOpen && !isManuallyOpened) {
+        setIsConsentModalOpen(false)
+        events?.onModalClose?.()
+      }
     }
+
+    checkShouldShowModal()
   }, [
     config,
     userContext,
@@ -46,11 +54,16 @@ export const ConsentProvider: React.FC<ConsentProviderProps> = ({
     userConsentVersion,
     userConsentStatementId,
     events,
+    isConsentModalOpen,
+    isManuallyOpened,
   ])
 
   const contextValue: ConsentContextValue = {
     isConsentModalOpen,
-    setIsConsentModalOpen,
+    setIsConsentModalOpen: (open: boolean, manual = false) => {
+      setIsConsentModalOpen(open)
+      setIsManuallyOpened(manual && open)
+    },
     config,
     userContext,
     events,

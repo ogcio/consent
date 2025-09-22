@@ -10,7 +10,7 @@ interface DemoConsentRecord {
   accept: boolean
   subject: string
   preferredLanguage: string
-  versionId: string
+  consentStatementId: string
   timestamp: string
 }
 

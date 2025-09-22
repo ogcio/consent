@@ -47,15 +47,6 @@ export const createDefaultConsentConfig = ({
       latestConsentVersion,
       latestConsentStatementId,
     }: ConsentModalVisibilityParams) => {
-      console.log("shouldShowModal", {
-        userContext,
-        consentStatus,
-        searchParams,
-        userConsentVersion,
-        userConsentStatementId,
-        latestConsentVersion,
-        latestConsentStatementId,
-      })
       // 1. Feature flag check first
       if (!isConsentEnabled) return false
 
@@ -76,7 +67,10 @@ export const createDefaultConsentConfig = ({
       const shouldForceShowModal = searchParams.get(forceModalParam) === "1"
 
       // 5. Final decision: show if no valid consent OR outdated version OR forced
-      return !hasValidConsent || !hasCurrentStatement || shouldForceShowModal
+      const result =
+        !hasValidConsent || !hasCurrentStatement || shouldForceShowModal
+
+      return result
     },
 
     // API integration - this needs to be provided by the consuming application

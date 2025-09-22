@@ -4,7 +4,7 @@ interface ConsentSubmitRequest {
   accept: boolean
   subject: string
   preferredLanguage: string
-  versionId: string
+  consentStatementId: string
 }
 
 // Demo storage type for simulating database
@@ -12,7 +12,7 @@ interface DemoConsentRecord {
   accept: boolean
   subject: string
   preferredLanguage: string
-  versionId: string
+  consentStatementId: string
   timestamp: string
 }
 
@@ -33,10 +33,32 @@ declare global {
 export async function POST(request: NextRequest) {
   try {
     const body: ConsentSubmitRequest = await request.json()
-    const { accept, subject, preferredLanguage, versionId } = body
+    const { accept, subject, preferredLanguage, consentStatementId } = body
+
+    console.log("Received consent submission:", {
+      accept,
+      subject,
+      preferredLanguage,
+      consentStatementId,
+    })
 
     // Simulate validation
-    if (!subject || !preferredLanguage || !versionId) {
+    if (
+      typeof accept !== "boolean" ||
+      !subject ||
+      !preferredLanguage ||
+      !consentStatementId
+    ) {
+      console.log("Validation failed:", {
+        accept,
+        acceptType: typeof accept,
+        subject,
+        subjectType: typeof subject,
+        preferredLanguage,
+        preferredLanguageType: typeof preferredLanguage,
+        consentStatementId,
+        consentStatementIdType: typeof consentStatementId,
+      })
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 },
@@ -54,7 +76,7 @@ export async function POST(request: NextRequest) {
       accept,
       subject,
       preferredLanguage,
-      versionId,
+      consentStatementId,
       timestamp: new Date().toISOString(),
     }
 
@@ -65,7 +87,7 @@ export async function POST(request: NextRequest) {
       accept,
       subject,
       preferredLanguage,
-      versionId,
+      consentStatementId,
       timestamp: new Date().toISOString(),
     })
 
