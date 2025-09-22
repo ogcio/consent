@@ -7,7 +7,7 @@ import {
 
 // Sample consent content for the demo application
 export const demoConsentContent: ConsentStatementContent = {
-  id: "demo-app-consent-v1",
+  id: "550e8400-e29b-41d4-a716-446655440001", // UUID format as per API contract
   version: 1,
   publishDate: new Date("2024-01-15T10:00:00Z").toISOString(),
   isEnabled: true,
@@ -16,10 +16,10 @@ export const demoConsentContent: ConsentStatementContent = {
 
 Before you start using our application, we need your consent for the following:
 
-• To provide you with a personalized experience
-• To analyze how you use our application to improve our services  
-• To send you notifications about important updates
-• To ensure the security and proper functioning of our application
+- To provide you with a personalized experience
+- To analyze how you use our application to improve our services  
+- To send you notifications about important updates
+- To ensure the security and proper functioning of our application
 
 You can withdraw your consent at any time through your account settings. Without your consent, some features may not be available.`,
   disclaimer:
@@ -51,7 +51,7 @@ You can withdraw your consent at any time through your account settings. Without
 
 // Analytics consent content
 export const analyticsConsentContent: ConsentStatementContent = {
-  id: "analytics-consent-v1",
+  id: "550e8400-e29b-41d4-a716-446655440002",
   version: 1,
   publishDate: new Date("2024-01-10T10:00:00Z").toISOString(),
   isEnabled: true,
@@ -106,8 +106,20 @@ export function createDemoConsentConfig(isEnabled: boolean = true) {
       accept,
       subject,
       preferredLanguage,
-      versionId,
+      consentStatementId: requestConsentStatementId,
     }) => {
+      // Use the consentStatementId from the API config, not the request parameter
+      const finalConsentStatementId =
+        consentStatementId || requestConsentStatementId
+      console.log("Demo API submitConsent called with:", {
+        accept,
+        subject,
+        preferredLanguage,
+        consentStatementId: finalConsentStatementId,
+        apiConfigStatementId: consentStatementId,
+        requestStatementId: requestConsentStatementId,
+      })
+
       const response = await fetch("/api/consent/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -115,7 +127,7 @@ export function createDemoConsentConfig(isEnabled: boolean = true) {
           accept,
           subject,
           preferredLanguage,
-          versionId,
+          consentStatementId: finalConsentStatementId,
         }),
       })
 
@@ -179,54 +191,71 @@ export function createAnalyticsConsentConfig() {
     showToastOnSuccess: true,
   })
 
-  config.api = (latestConsentVersion, consentStatementId) => ({
-    consentStatementId,
-    version: latestConsentVersion,
-    submitConsent: async ({
-      accept,
-      subject,
-      preferredLanguage,
-      versionId,
-    }) => {
-      const response = await fetch("/api/consent/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+  config.api = (latestConsentVersion, consentStatementId) => {
+    console.log("Analytics API config called with:", {
+      latestConsentVersion,
+      consentStatementId,
+    })
+    return {
+      consentStatementId,
+      version: latestConsentVersion,
+      submitConsent: async ({
+        accept,
+        subject,
+        preferredLanguage,
+        consentStatementId: requestConsentStatementId,
+      }) => {
+        // Use the consentStatementId from the API config, not the request parameter
+        const finalConsentStatementId =
+          consentStatementId || requestConsentStatementId
+        console.log("Analytics API submitConsent called with:", {
           accept,
           subject,
           preferredLanguage,
-          versionId,
-        }),
-      })
+          consentStatementId: finalConsentStatementId,
+          apiConfigStatementId: consentStatementId,
+          requestStatementId: requestConsentStatementId,
+        })
+        const response = await fetch("/api/consent/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            accept,
+            subject,
+            preferredLanguage,
+            consentStatementId: finalConsentStatementId,
+          }),
+        })
 
-      if (!response.ok) {
-        const error = await response.json()
-        return {
-          error: { detail: error.message || "Failed to submit consent" },
+        if (!response.ok) {
+          const error = await response.json()
+          return {
+            error: { detail: error.message || "Failed to submit consent" },
+          }
         }
-      }
 
-      return {}
-    },
-    setConsentToPending: async (subject) => {
-      const response = await fetch("/api/consent/pending", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject }),
-      })
+        return {}
+      },
+      setConsentToPending: async (subject) => {
+        const response = await fetch("/api/consent/pending", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subject }),
+        })
 
-      if (!response.ok) {
-        const error = await response.json()
-        return {
-          error: {
-            detail: error.message || "Failed to set consent to pending",
-          },
+        if (!response.ok) {
+          const error = await response.json()
+          return {
+            error: {
+              detail: error.message || "Failed to set consent to pending",
+            },
+          }
         }
-      }
 
-      return {}
-    },
-  })
+        return {}
+      },
+    }
+  }
 
   return config
 }
@@ -243,6 +272,7 @@ export const mockUser = {
 export async function fetchConsentStatus(subject: string): Promise<{
   consentStatus: ConsentStatus
   userConsentVersion?: number
+  userConsentStatementId?: string
 }> {
   try {
     const response = await fetch(
@@ -257,9 +287,8 @@ export async function fetchConsentStatus(subject: string): Promise<{
     const data = await response.json()
     return {
       consentStatus: data.consentStatus as ConsentStatus,
-      userConsentVersion: data.userConsentVersion
-        ? parseInt(data.userConsentVersion, 10)
-        : undefined,
+      userConsentVersion: data.userConsentVersion,
+      userConsentStatementId: data.userConsentStatementId,
     }
   } catch (error) {
     console.warn("Error fetching consent status:", error)

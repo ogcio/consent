@@ -19,25 +19,39 @@ export const ConsentProvider: React.FC<ConsentProviderProps> = ({
   children,
 }) => {
   const [isConsentModalOpen, setIsConsentModalOpen] = useState(false)
+  const [hasUserClosedModal, setHasUserClosedModal] = useState(false)
 
   // Check if user has opted out
   const isOptedOut = consentStatus === ConsentStatuses.OptedOut
 
   // Determine if modal should be shown
   useEffect(() => {
-    const shouldShow = config.shouldShowModal({
+    const searchParams = new URLSearchParams(window.location.search)
+    const modalParams = {
       userContext,
       consentStatus,
-      searchParams: new URLSearchParams(window.location.search),
+      searchParams,
       userConsentVersion,
       userConsentStatementId,
       latestConsentVersion: config.content?.version ?? 0,
       latestConsentStatementId: config.content?.id ?? "",
-    })
+    }
 
-    if (shouldShow) {
+    const shouldShow = config.shouldShowModal(modalParams)
+    const isForceParam =
+      searchParams.get(config.forceModalParam || "force-consent") === "1"
+
+    // Don't reopen modal if user has already closed it
+    if (hasUserClosedModal && isForceParam) {
+      return
+    }
+
+    if (shouldShow && !isConsentModalOpen) {
       setIsConsentModalOpen(true)
       events?.onModalOpen?.()
+    } else if (!shouldShow && isConsentModalOpen) {
+      setIsConsentModalOpen(false)
+      events?.onModalClose?.()
     }
   }, [
     config,
@@ -46,11 +60,21 @@ export const ConsentProvider: React.FC<ConsentProviderProps> = ({
     userConsentVersion,
     userConsentStatementId,
     events,
+    isConsentModalOpen,
+    hasUserClosedModal,
   ])
+
+  // Custom modal close handler that tracks when user closes modal
+  const handleModalClose = (value: boolean) => {
+    setIsConsentModalOpen(value)
+    if (!value) {
+      setHasUserClosedModal(true)
+    }
+  }
 
   const contextValue: ConsentContextValue = {
     isConsentModalOpen,
-    setIsConsentModalOpen,
+    setIsConsentModalOpen: handleModalClose,
     config,
     userContext,
     events,

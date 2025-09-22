@@ -2,6 +2,24 @@ import { type NextRequest, NextResponse } from "next/server"
 
 interface ConsentPendingRequest {
   subject: string
+  userId?: string
+}
+
+// Demo storage type for simulating database
+interface DemoConsentRecord {
+  accept: boolean
+  subject: string
+  preferredLanguage: string
+  consentStatementId: string
+  timestamp: string
+}
+
+interface DemoConsentStorage {
+  [userKey: string]: DemoConsentRecord
+}
+
+declare global {
+  var __demo_consent_storage: DemoConsentStorage | undefined
 }
 
 // This endpoint sets a user's consent status to pending
@@ -10,7 +28,7 @@ interface ConsentPendingRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: ConsentPendingRequest = await request.json()
-    const { subject } = body
+    const { subject, userId } = body
 
     // Simulate validation
     if (!subject) {
@@ -23,20 +41,36 @@ export async function POST(request: NextRequest) {
     // Simulate processing time
     await new Promise((resolve) => setTimeout(resolve, 500))
 
-    // Simulate database update
-    console.log("Consent set to pending:", {
-      subject,
-      timestamp: new Date().toISOString(),
-    })
+    // Clear stored consent to make status return to pending/undefined
+    // This simulates invalidating consent when terms are updated
+    const globalConsent = globalThis.__demo_consent_storage || {}
+    const userKey = `${subject}-${userId || "anonymous"}`
 
-    // In a real app, you would:
-    // 1. Update the user's consent status to 'pending' in the database
-    // 2. Log the action for audit purposes
-    // 3. Potentially disable certain features until re-consent
+    // Remove the stored consent record to force re-consent
+    if (globalConsent[userKey]) {
+      delete globalConsent[userKey]
+      console.log("Consent record cleared for pending status:", {
+        userKey,
+        subject,
+        timestamp: new Date().toISOString(),
+      })
+    } else {
+      console.log(
+        "No existing consent record found, status will be undefined:",
+        {
+          userKey,
+          subject,
+          timestamp: new Date().toISOString(),
+        },
+      )
+    }
+
+    // Update global storage
+    globalThis.__demo_consent_storage = globalConsent
 
     return NextResponse.json({
       success: true,
-      message: "Consent status set to pending",
+      message: "Consent status set to pending - user will need to re-consent",
     })
   } catch (error) {
     console.error("Error setting consent to pending:", error)

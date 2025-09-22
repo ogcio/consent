@@ -83,7 +83,7 @@ export type ConsentAPI = {
     accept: boolean
     subject: string
     preferredLanguage?: string
-    versionId?: number
+    consentStatementId: string
   }): Promise<ConsentResult>
   setConsentToPending(subject: string): Promise<ConsentResult>
 }

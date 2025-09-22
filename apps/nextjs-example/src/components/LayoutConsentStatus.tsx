@@ -48,12 +48,14 @@ export default function LayoutConsentStatus() {
     const handleConsentChange = () => {
       loadConsentInfo()
       // Also sync user info from global state
-      const globalUser = window.__mockUser
-      if (globalUser) {
-        setUserInfo({
-          isPublicServant: globalUser.isPublicServant || false,
-          preferredLanguage: globalUser.preferredLanguage || "en",
-        })
+      if (typeof window !== "undefined") {
+        const globalUser = window.__mockUser
+        if (globalUser) {
+          setUserInfo({
+            isPublicServant: globalUser.isPublicServant || false,
+            preferredLanguage: globalUser.preferredLanguage || "en",
+          })
+        }
       }
     }
 
@@ -65,21 +67,25 @@ export default function LayoutConsentStatus() {
     }
 
     // Listen for custom events
-    window.addEventListener("consentChanged", handleConsentChange)
-    window.addEventListener(
-      "userContextChanged",
-      handleUserContextChange as EventListener,
-    )
-
-    // Initialize user info from global state
-    handleConsentChange()
-
-    return () => {
-      window.removeEventListener("consentChanged", handleConsentChange)
-      window.removeEventListener(
+    if (typeof window !== "undefined") {
+      window.addEventListener("consentChanged", handleConsentChange)
+      window.addEventListener(
         "userContextChanged",
         handleUserContextChange as EventListener,
       )
+
+      // Initialize user info from global state
+      handleConsentChange()
+    }
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("consentChanged", handleConsentChange)
+        window.removeEventListener(
+          "userContextChanged",
+          handleUserContextChange as EventListener,
+        )
+      }
     }
   }, [loadConsentInfo])
 

@@ -6,7 +6,7 @@ interface DemoConsentRecord {
   accept: boolean
   subject: string
   preferredLanguage: string
-  versionId: string
+  consentStatementId: string
   timestamp: string
 }
 
@@ -47,14 +47,17 @@ export async function GET(request: NextRequest) {
     const storedConsent = globalConsent[userKey]
 
     let consentStatus: ConsentStatus = ConsentStatuses.Undefined
-    let userConsentVersion: string | undefined
+    let userConsentVersion: number | undefined
+    let userConsentStatementId: string | undefined
 
     if (storedConsent) {
       consentStatus = storedConsent.accept
         ? ConsentStatuses.OptedIn
         : ConsentStatuses.OptedOut
-      // Store version for both accept and decline to prevent modal reopening
-      userConsentVersion = storedConsent.versionId
+      // Store statement ID for both accept and decline to prevent modal reopening
+      userConsentStatementId = storedConsent.consentStatementId
+      // Since we're using UUIDs now, just use a default version number for demo
+      userConsentVersion = 1
     } else {
       // Fallback to hardcoded statuses for other subjects
       const simulatedStatuses = {
@@ -65,14 +68,17 @@ export async function GET(request: NextRequest) {
       consentStatus =
         simulatedStatuses[subject as keyof typeof simulatedStatuses] ||
         ConsentStatuses.Undefined
-      userConsentVersion =
-        consentStatus === ConsentStatuses.OptedIn ? "v1.0.0" : undefined
+      if (consentStatus === ConsentStatuses.OptedIn) {
+        userConsentStatementId = "550e8400-e29b-41d4-a716-446655440001" // UUID format
+        userConsentVersion = 1
+      }
     }
 
     return NextResponse.json({
       subject,
       consentStatus,
       userConsentVersion,
+      userConsentStatementId,
       lastUpdated: new Date().toISOString(),
     })
   } catch (error) {

@@ -47,6 +47,7 @@ export const makeApiCall = async (
 export const createApiCallTracker = (
   setApiCalls: React.Dispatch<React.SetStateAction<ApiCall[]>>,
   addConsoleLog: (message: string, type?: "info" | "error" | "warning") => void,
+  generateId: () => string, // Accept ID generator function
 ) => {
   return (
     method: string,
@@ -56,7 +57,7 @@ export const createApiCallTracker = (
     duration: number,
   ) => {
     const apiCall: ApiCall = {
-      id: Date.now().toString(),
+      id: generateId(),
       timestamp: new Date().toISOString(),
       method,
       endpoint,
@@ -72,10 +73,11 @@ export const createApiCallTracker = (
 // Create console log function
 export const createConsoleLogger = (
   setConsoleLogs: React.Dispatch<React.SetStateAction<ConsoleLog[]>>,
+  generateId: () => string, // Accept ID generator function
 ) => {
   return (message: string, type: "info" | "error" | "warning" = "info") => {
     const log: ConsoleLog = {
-      id: Date.now().toString(),
+      id: generateId(),
       message,
       type,
       timestamp: new Date().toISOString(),

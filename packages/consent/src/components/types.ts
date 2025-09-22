@@ -7,7 +7,7 @@ import type {
 
 export type ConsentContextValue = {
   isConsentModalOpen: boolean
-  setIsConsentModalOpen: (open: boolean) => void
+  setIsConsentModalOpen: (open: boolean, manual?: boolean) => void
   config: ConsentConfig
   userContext: ConsentUserContext
   events?: ConsentEvents

@@ -41,19 +41,23 @@ export const ConsentModal = () => {
   const [hasSetBottomRef, setHasBottomRef] = useState(false)
   const bottomRef = useRef<HTMLDivElement | null>(null)
   const titleId = useId()
+  const [currentLanguage, setCurrentLanguage] =
+    useState<ConsentStatementLanguages>("en")
 
   const { content, analyticsTracker, api } = config
   const preferredLanguage = config.userContext.getPreferredLanguage(userContext)
 
   // Extract current language from URL path
-  const getCurrentLanguageFromUrl = (): ConsentStatementLanguages => {
-    const currentPath = window.location.pathname
-    const urlPattern = /\/(en|ga)\//
-    const match = currentPath.match(urlPattern)
-    return (match?.[1] as ConsentStatementLanguages) || "en"
-  }
+  useEffect(() => {
+    const getCurrentLanguageFromUrl = (): ConsentStatementLanguages => {
+      const currentPath = window.location.pathname
+      const urlPattern = /\/(en|ga)\//
+      const match = currentPath.match(urlPattern)
+      return (match?.[1] as ConsentStatementLanguages) || "en"
+    }
 
-  const currentLanguage = getCurrentLanguageFromUrl()
+    setCurrentLanguage(getCurrentLanguageFromUrl())
+  }, [])
 
   // Language switcher translations with fallback defaults
   const languageTranslations = config.languageSwitcher?.translations || {
@@ -125,7 +129,7 @@ export const ConsentModal = () => {
         accept,
         subject: config.subject,
         preferredLanguage,
-        versionId: content.version,
+        consentStatementId: content.id,
       })
 
       setIsLoading({
@@ -206,14 +210,14 @@ export const ConsentModal = () => {
         )}
         <Stack direction='column' gap={4} id={`content-stack`}>
           {content.description && (
-            <Paragraph>
+            <div className='gi-paragraph-md gi-text-start gi-whitespace-normal'>
               <Markdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw, rehypeSanitize]}
               >
                 {content.description}
               </Markdown>
-            </Paragraph>
+            </div>
           )}
 
           {content.disclaimer && (

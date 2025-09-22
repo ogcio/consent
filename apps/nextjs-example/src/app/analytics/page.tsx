@@ -25,7 +25,7 @@ import {
   TableRow,
   Tag,
 } from "@ogcio/design-system-react"
-import { useEffect, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
 import { ApiCallsCard } from "@/components/ApiCallsCard"
 import { ConsoleLogsCard } from "@/components/ConsoleLogsCard"
 import type { ApiCall, ConsoleLog } from "@/components/types"
@@ -84,16 +84,7 @@ function AnalyticsContent({
     setIsAnalyticsEnabled(consentStatus === "opted-in")
   }, [consentStatus])
 
-  // Store modal close function globally for use in parent events
-  useEffect(() => {
-    ;(
-      window as unknown as { __analyticsModalClose?: () => void }
-    ).__analyticsModalClose = () => setIsConsentModalOpen(false)
-    return () => {
-      delete (window as unknown as { __analyticsModalClose?: () => void })
-        .__analyticsModalClose
-    }
-  }, [setIsConsentModalOpen])
+  // Modal closing is now handled automatically by ConsentProvider
 
   const trackCustomEvent = (
     event: string,
@@ -210,7 +201,7 @@ function AnalyticsContent({
                   <Button
                     type='button'
                     variant='secondary'
-                    onClick={() => setIsConsentModalOpen(true)}
+                    onClick={() => setIsConsentModalOpen(true, true)}
                     className='w-full gi-justify-center'
                   >
                     Show Consent Modal
@@ -238,7 +229,8 @@ function AnalyticsContent({
                         accept: true,
                         subject: "analytics",
                         preferredLanguage: "en",
-                        versionId: "v1.2.0",
+                        consentStatementId:
+                          "550e8400-e29b-41d4-a716-446655440002",
                       })
                     }
                     className='w-full gi-justify-center'
@@ -301,6 +293,10 @@ export default function AnalyticsPage() {
   const [userConsentVersion, setUserConsentVersion] = useState<
     number | undefined
   >()
+  const [userConsentStatementId, setUserConsentStatementId] = useState<
+    string | undefined
+  >()
+  const [isLoading, setIsLoading] = useState(true)
   const [analyticsEvents, setAnalyticsEvents] = useState<AnalyticsEvent[]>([])
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([])
   const [apiCalls, setApiCalls] = useState<ApiCall[]>([])
@@ -308,10 +304,20 @@ export default function AnalyticsPage() {
   // Load initial consent status for analytics
   useEffect(() => {
     async function loadAnalyticsConsent() {
-      const { consentStatus: status, userConsentVersion: version } =
-        await fetchConsentStatus("analytics")
-      setConsentStatus(status)
-      setUserConsentVersion(version)
+      try {
+        const {
+          consentStatus: status,
+          userConsentVersion: version,
+          userConsentStatementId: statementId,
+        } = await fetchConsentStatus("analytics")
+        setConsentStatus(status)
+        setUserConsentVersion(version)
+        setUserConsentStatementId(statementId)
+      } catch (error) {
+        console.error("Failed to load analytics consent status:", error)
+      } finally {
+        setIsLoading(false)
+      }
     }
     loadAnalyticsConsent()
   }, [])
@@ -319,9 +325,18 @@ export default function AnalyticsPage() {
   // Create analytics consent configuration
   const analyticsConfig = createAnalyticsConsentConfig()
 
+  // Generate unique IDs using React's useId hook
+  const baseId = useId()
+  const idCounterRef = useRef(0)
+  const generateId = () => `${baseId}-${++idCounterRef.current}`
+
   // Utility functions for logging and API tracking
-  const addConsoleLog = createConsoleLogger(setConsoleLogs)
-  const trackApiCall = createApiCallTracker(setApiCalls, addConsoleLog)
+  const addConsoleLog = createConsoleLogger(setConsoleLogs, generateId)
+  const trackApiCall = createApiCallTracker(
+    setApiCalls,
+    addConsoleLog,
+    generateId,
+  )
   const makeApiCall = createMakeApiCall(trackApiCall)
 
   // Track analytics events
@@ -351,19 +366,11 @@ export default function AnalyticsPage() {
       )
 
       setConsentStatus(accepted ? "opted-in" : "opted-out")
-      // Always set the version that was consented to (accept or decline)
+      // Always set the version and statement ID that was consented to (accept or decline)
       setUserConsentVersion(analyticsConfig.content?.version)
+      setUserConsentStatementId(analyticsConfig.content?.id)
 
-      // Close modal using global function
-      if (typeof window !== "undefined") {
-        const windowWithClose = window as unknown as {
-          __analyticsModalClose?: () => void
-        }
-        if (windowWithClose.__analyticsModalClose) {
-          windowWithClose.__analyticsModalClose()
-          addConsoleLog("📖 Analytics consent modal closed")
-        }
-      }
+      // Modal will close automatically via ConsentProvider logic
 
       // Track consent decision event (for both accept and decline)
       setTimeout(() => {
@@ -397,6 +404,20 @@ export default function AnalyticsPage() {
     },
   }
 
+  // Show loading state while fetching consent status
+  if (isLoading) {
+    return (
+      <div className='min-h-screen flex items-center justify-center'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>
+            Loading analytics consent preferences...
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <ConsentProvider
       config={analyticsConfig}
@@ -408,6 +429,7 @@ export default function AnalyticsPage() {
         consentStatus as (typeof ConsentStatuses)[keyof typeof ConsentStatuses]
       }
       userConsentVersion={userConsentVersion}
+      userConsentStatementId={userConsentStatementId}
       events={events}
     >
       <AnalyticsContent
