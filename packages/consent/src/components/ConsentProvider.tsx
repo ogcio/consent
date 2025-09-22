@@ -19,34 +19,40 @@ export const ConsentProvider: React.FC<ConsentProviderProps> = ({
   children,
 }) => {
   const [isConsentModalOpen, setIsConsentModalOpen] = useState(false)
-  const [isManuallyOpened, setIsManuallyOpened] = useState(false)
+  const [hasUserClosedModal, setHasUserClosedModal] = useState(false)
 
   // Check if user has opted out
   const isOptedOut = consentStatus === ConsentStatuses.OptedOut
 
   // Determine if modal should be shown
   useEffect(() => {
-    const checkShouldShowModal = () => {
-      const shouldShow = config.shouldShowModal({
-        userContext,
-        consentStatus,
-        searchParams: new URLSearchParams(window.location.search),
-        userConsentVersion,
-        userConsentStatementId,
-        latestConsentVersion: config.content?.version ?? 0,
-        latestConsentStatementId: config.content?.id ?? "",
-      })
-
-      if (shouldShow && !isConsentModalOpen) {
-        setIsConsentModalOpen(true)
-        events?.onModalOpen?.()
-      } else if (!shouldShow && isConsentModalOpen && !isManuallyOpened) {
-        setIsConsentModalOpen(false)
-        events?.onModalClose?.()
-      }
+    const searchParams = new URLSearchParams(window.location.search)
+    const modalParams = {
+      userContext,
+      consentStatus,
+      searchParams,
+      userConsentVersion,
+      userConsentStatementId,
+      latestConsentVersion: config.content?.version ?? 0,
+      latestConsentStatementId: config.content?.id ?? "",
     }
 
-    checkShouldShowModal()
+    const shouldShow = config.shouldShowModal(modalParams)
+    const isForceParam =
+      searchParams.get(config.forceModalParam || "force-consent") === "1"
+
+    // Don't reopen modal if user has already closed it
+    if (hasUserClosedModal && isForceParam) {
+      return
+    }
+
+    if (shouldShow && !isConsentModalOpen) {
+      setIsConsentModalOpen(true)
+      events?.onModalOpen?.()
+    } else if (!shouldShow && isConsentModalOpen) {
+      setIsConsentModalOpen(false)
+      events?.onModalClose?.()
+    }
   }, [
     config,
     userContext,
@@ -55,15 +61,20 @@ export const ConsentProvider: React.FC<ConsentProviderProps> = ({
     userConsentStatementId,
     events,
     isConsentModalOpen,
-    isManuallyOpened,
+    hasUserClosedModal,
   ])
+
+  // Custom modal close handler that tracks when user closes modal
+  const handleModalClose = (value: boolean) => {
+    setIsConsentModalOpen(value)
+    if (!value) {
+      setHasUserClosedModal(true)
+    }
+  }
 
   const contextValue: ConsentContextValue = {
     isConsentModalOpen,
-    setIsConsentModalOpen: (open: boolean, manual = false) => {
-      setIsConsentModalOpen(open)
-      setIsManuallyOpened(manual && open)
-    },
+    setIsConsentModalOpen: handleModalClose,
     config,
     userContext,
     events,
