@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/ogcio/consent/compare/@ogcio/consent-v0.1.5...@ogcio/consent-v0.1.6) (2025-09-26)
+
+
+### Features
+
+* update ga translation ([#25](https://github.com/ogcio/consent/issues/25)) ([f02709b](https://github.com/ogcio/consent/commit/f02709bce3d69e4209b917dee2576fb752786150))
+
 ## [0.1.5](https://github.com/ogcio/consent/compare/@ogcio/consent-v0.1.4...@ogcio/consent-v0.1.5) (2025-09-22)
 
 
