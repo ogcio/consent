@@ -25,7 +25,7 @@ const UI_TRANSLATIONS = {
   },
   ga: {
     buttons: {
-      accept: "Glac leis",
+      accept: "Glac",
       decline: "Diúltaigh",
     },
     success: {
